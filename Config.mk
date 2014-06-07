@@ -27,7 +27,7 @@ BIN      := Simplex
 
 # Package info
 MAINTEINER_NAME := Renato Cordeiro Ferreira
-MAINTEINER_MAIL := renato.cordeiro.ferreira@
+MAINTEINER_MAIL := renato.cordeiro.ferreira@usp.br
 SYNOPSIS        := Network Simplex implementation for MAC0315
 DESCRIPTION     := C++ Implementation of MAC0315 first program exercise
 
