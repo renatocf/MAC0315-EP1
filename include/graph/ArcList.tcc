@@ -15,56 +15,19 @@
 /* and limitations under the License.                                 */
 /**********************************************************************/
 
-#ifndef HPP_GRAPH_ADJACENCY_LIST_DEFINED
-#define HPP_GRAPH_ADJACENCY_LIST_DEFINED
+#ifndef TCC_GRAPH_ARCLIST_DEFINED
+#define TCC_GRAPH_ARCLIST_DEFINED
 
 // Default libraries
-#include <list>
 #include <vector>
-#include <initializer_list>
+
+// Libraries
+#include "Arc.tcc"
 
 namespace graph 
 {
-    class Vertex
-    {
-        private:
-            static int g_id;
-        
-        public:
-            const int id;
-            
-            Vertex()
-                : id{g_id++} {}
-    };
-    
-    template<typename V = graph::Vertex>
-    class Arc
-    {
-        public: 
-            const V& beg;
-            const V& end;
-            const int id;
-            
-            Arc(const V& beg, const V& end, const int id = {})
-                : beg{beg}, end{end}, id{id} {}
-    };
-    
-    template<typename V = graph::Vertex, 
-             typename A = graph::Arc<>,
-             template<class C> class Row = std::vector,
-             template<class A> class Col = std::list >
-    class Adjacency_list
-    {
-        private:
-            Row<Col<A>> adj_list {};
-        
-        public:
-            Adjacency_list(std::initializer_list<A> arcs)
-            {
-                for(auto& arc : arcs)
-                    adj_list[arcs.beg.id].push_back(arc);
-            }
-    };
+    template<typename Arc = graph::Arc<>>
+    using ArcList = std::vector<Arc>;
 }
 
 #endif

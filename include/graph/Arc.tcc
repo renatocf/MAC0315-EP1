@@ -15,11 +15,30 @@
 /* and limitations under the License.                                 */
 /**********************************************************************/
 
-#ifndef HPP_GRAPH_DEFINED
-#define HPP_GRAPH_DEFINED
+#ifndef TCC_GRAPH_ARC_DEFINED
+#define TCC_GRAPH_ARC_DEFINED
 
 // Libraries
-#include "include/graph/Adjacency_list.hpp"
- #include "include/graph/graph.hpp"
+#include "Vertex.tcc"
+
+namespace graph 
+{
+    template<
+        typename Vertex     = graph::Vertex<>,
+        typename Properties = no_property
+    >struct Arc
+    {
+        using vertex_type   = Vertex;
+        using property_type = Properties;
+        
+        const Vertex& beg;
+        const Vertex& end;
+        property_type properties {};
+        
+        Arc(const Vertex& beg, const Vertex& end, 
+            const property_type properties = {})
+            : beg{beg}, end{end}, properties{properties} {}
+    };
+}
 
 #endif
