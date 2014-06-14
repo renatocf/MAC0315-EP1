@@ -15,42 +15,19 @@
 /* and limitations under the License.                                 */
 /**********************************************************************/
 
-#ifndef TCC_GRAPH_VERTEXLIST_DEFINED
-#define TCC_GRAPH_VERTEXLIST_DEFINED
+#ifndef TCC_GRAPH_ARC_LIST_DEFINED
+#define TCC_GRAPH_ARC_LIST_DEFINED
 
 // Default libraries
 #include <vector>
-#include <initializer_list>
 
 // Libraries
-#include "Vertex.tcc"
-#include "Properties.tcc"
+#include "Arc.tcc"
 
 namespace graph 
 {
-    template<
-        typename Properties = no_property
-    >class VertexList
-    {
-        private:
-            using Vertex = graph::Vertex<Properties>;
-            mutable std::vector<Vertex> vl = {};
-        
-        public:
-            VertexList(std::initializer_list<Properties> properties)
-            {
-                for(const Properties& p : properties)
-                    vl.push_back({ vl.size()+1, p });
-            }
-            
-            unsigned long size() { return vl.size(); }
-            
-            Vertex& 
-            operator[](std::size_t idx) { return vl[idx]; }
-            
-            const Vertex& 
-            operator[](std::size_t idx) const { return vl[idx]; }
-    };
+    template<typename Arc = graph::Arc<>>
+    using Arc_list = std::vector<Arc>;
 }
 
 #endif

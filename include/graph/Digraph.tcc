@@ -24,9 +24,9 @@
 // Libraries
 #include "Arc.tcc"
 #include "Vertex.tcc"
-#include "ArcList.tcc"
-#include "VertexList.tcc"
+#include "Arc_list.tcc"
 #include "Properties.tcc"
+#include "Vertex_list.tcc"
 #include "Adjacency_list.tcc"
 
 namespace graph 
@@ -43,8 +43,8 @@ namespace graph
             using arc_property_type    = typename Arc::property_type;
             using vertex_property_type = typename Vertex::property_type;
             
-            VertexList<vertex_property_type> vl {};
-            ArcList<Arc> al   {};
+            Vertex_list<vertex_property_type> vl {};
+            Arc_list<Arc> al   {};
             Structure    data {};
             
             property_type properties   {};
@@ -53,8 +53,8 @@ namespace graph
             unsigned long arcs       {};
 
         public:
-            Digraph(VertexList<vertex_property_type> vl = {}, 
-                    ArcList<Arc> al = {}, property_type properties = {})
+            Digraph(Vertex_list<vertex_property_type> vl = {}, 
+                    Arc_list<Arc> al = {}, property_type properties = {})
                 : vl{vl}, al{al}, properties{properties},
                   vertices{vl.size()}, arcs{al.size()} {}
     };   
