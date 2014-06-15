@@ -38,6 +38,14 @@ namespace graph
         Arc(const Vertex& beg, const Vertex& end, 
             const property_type properties = {})
             : beg{beg}, end{end}, properties{properties} {}
+        
+        friend std::ostream& 
+        operator<<(std::ostream& os, const Arc& a)
+        {
+            os << "{ beg:" << a.beg << ", end:" << a.end;
+            os << ", properties:" << a.properties << " }";
+            return os;
+        }
     };
 }
 

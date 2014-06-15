@@ -28,6 +28,14 @@ namespace graph
 {
     template<typename Arc = graph::Arc<>>
     using Arc_list = std::vector<Arc>;
+            
+    template<typename Arc = graph::Arc<>> std::ostream& 
+    operator<<(std::ostream& os, const Arc_list<Arc>& al)
+    {
+        for(auto it = al.begin(); it != al.end(); ++it)
+            os << *it << endl;
+        return os;
+    }
 }
 
 #endif
