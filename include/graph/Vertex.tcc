@@ -28,6 +28,7 @@ namespace graph
         typename Id         = unsigned long
     >struct Vertex
     {
+        using id_type       = Id;
         using property_type = Properties;
         
         const Id id {};
@@ -35,6 +36,16 @@ namespace graph
         
         Vertex(const Id id, property_type properties = {})
             : id{id}, properties{properties} {}
+        
+        Vertex(const Id id, const Vertex& prototype)
+            : id{id}, properties{prototype.properties} {}
+        
+        friend std::ostream& 
+        operator<<(std::ostream& os, const Vertex& v)
+        {
+            os << "{" << v.id << "," << v.properties << "}";
+            return os;
+        }
     };
 }
 
