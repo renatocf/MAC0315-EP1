@@ -19,7 +19,7 @@
 #define TCC_GRAPH_VERTEX_LIST_DEFINED
 
 // Default libraries
-#include <vector>
+#include <unordered_map>
 #include <initializer_list>
 
 // Libraries
@@ -29,27 +29,48 @@
 namespace graph 
 {
     template<
-        typename Properties = no_property
+        typename Vertex = graph::Vertex<>
     >class Vertex_list
     {
         private:
-            using Vertex = graph::Vertex<Properties>;
-            mutable std::vector<Vertex> vl = {};
+            mutable 
+            std::unordered_map<typename Vertex::id_type,Vertex> vl;
         
         public:
-            Vertex_list(std::initializer_list<Properties> properties)
+            class id_repeated{}; // Exception
+            
+            using id_type       = typename Vertex::id_type;
+            using property_type = typename Vertex::property_type;
+            
+            Vertex_list(std::initializer_list<Vertex> vertices)
             {
-                for(const Properties& p : properties)
-                    vl.push_back({ vl.size()+1, p });
+                for(const Vertex& v : vertices)
+                    if(vl.find(v.id) == vl.end())
+                        vl.insert({v.id, v});
+                    else throw Vertex_list::id_repeated{};
+            }
+            
+            Vertex_list(const id_type n, const Vertex& prototype = {})
+            {
+                for(id_type i = 0; i < n; i++)
+                    vl.insert({i,prototype});
             }
             
             unsigned long size() { return vl.size(); }
             
             Vertex& 
-            operator[](std::size_t idx) { return vl[idx]; }
+            operator[](const id_type idx) { return vl[idx]; }
             
             const Vertex& 
-            operator[](std::size_t idx) const { return vl[idx]; }
+            operator[](const id_type idx) const { return vl[idx]; }
+            
+            friend std::ostream& 
+            operator<<(std::ostream& os, const Vertex_list& vl)
+            {
+                for(auto it = vl.vl.begin(); it != vl.vl.end(); ++it) 
+                    os << it->second << endl;
+                return os;
+            }
     };
 }
 
