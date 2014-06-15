@@ -27,6 +27,8 @@ using namespace std;
 
 // Libraries
 #include "Options.hpp"
+#include "graph/graph.tcc"
+#include "graph/flow/flow.tcc"
 
 /**
  * @fn Main
@@ -46,6 +48,18 @@ int main(int argc, char **argv)
 
         return EXIT_FAILURE;
     }
+    
+    graph::flow::Vertex<> v1 { 0 };
+    graph::flow::Vertex<> v2 { 1 };
+    
+    graph::flow::Arc<> a1 { v1, v2, -1 };
+    graph::flow::Arc<> a2 { v2, v1,  1 };
+    
+    graph::Vertex_list<graph::flow::Vertex<>> vl { v1, v2 };
+    cout << vl << endl;
+    
+    graph::Arc_list<graph::flow::Arc<>> al { a1, a2 };
+    cout << al << endl;
     
     return EXIT_SUCCESS;
 }
