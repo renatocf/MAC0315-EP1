@@ -24,6 +24,12 @@ namespace graph
     {
         no_property() {}
         no_property(const no_property& np) {}
+        
+        friend std::ostream& 
+        operator<<(std::ostream& os, const no_property& n)
+        {
+            os << "none"; return os;
+        }
     };
 }
 
