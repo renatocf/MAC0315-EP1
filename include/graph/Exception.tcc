@@ -15,22 +15,16 @@
 /* and limitations under the License.                                 */
 /**********************************************************************/
 
-#ifndef TCC_GRAPH_PROPERTIES_DEFINED
-#define TCC_GRAPH_PROPERTIES_DEFINED
+#ifndef TCC_GRAPH_EXCEPTION_DEFINED
+#define TCC_GRAPH_EXCEPTION_DEFINED
+
+// Default libraries
+#include <exception>
 
 namespace graph 
 {
-    struct no_property
-    {
-        no_property() {}
-        no_property(const no_property& np) {}
-        
-        friend std::ostream& 
-        operator<<(std::ostream& os, const no_property& n)
-        {
-            os << "none"; return os;
-        }
-    };
+    struct id_not_found : public std::exception {};
+    struct id_repeated  : public std::exception {};
 }
 
 #endif

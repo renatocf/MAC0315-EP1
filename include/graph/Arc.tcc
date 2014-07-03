@@ -25,7 +25,8 @@ namespace graph
 {
     template<
         typename Vertex     = graph::Vertex<>,
-        typename Properties = no_property
+        typename Properties = no_property,
+        typename Directed   = directed
     >struct Arc
     {
         using vertex_type   = Vertex;
@@ -38,6 +39,18 @@ namespace graph
         Arc(const Vertex& beg, const Vertex& end, 
             const property_type properties = {})
             : beg{beg}, end{end}, properties{properties} {}
+        
+        bool operator==(const Arc& a) const
+        {
+            return this->beg        == a.beg
+                && this->end        == a.end
+                && this->properties == a.properties;
+        }
+        
+        bool operator!=(const Arc& a) const
+        {
+            return !operator==(a);
+        }
         
         friend std::ostream& 
         operator<<(std::ostream& os, const Arc& a)

@@ -26,39 +26,41 @@ namespace flow
 {
     template<
         typename Properties  = graph::no_property,
-        typename Flux        = unsigned int,
-        typename Capacity    = unsigned int,
-        typename Requirement = unsigned int,
-        typename Id          = unsigned long
-    >struct Vertex : public graph::Vertex<Properties, Id>
+        typename Demand      = int
+    >struct Vertex_flow
     {
-        using id_type       = Id;
-        using property_type = Properties;
-
-        Flux flux               = {};
-        Capacity capacity       = {};
-        Requirement requirement = {};
-
-        Vertex(const Id id, Flux f = {}, Capacity c = {},
-               Requirement r = {}, property_type properties = {})
-            : graph::Vertex<Properties,Id>{id,properties},
-              flux{f}, capacity{c}, requirement{r} {}
+        Demand     demand     = {};
+        Properties properties = {};
         
-        Vertex(const Id id, const Vertex& prototype)
-            : graph::Vertex<Properties,Id>{id,prototype.properties},
-              flux{prototype.flux}, capacity{prototype.capacity},
-              requirement{prototype.requirement} {}
+        Vertex_flow(Demand d = {}, Properties p = {})
+            : demand{d}, properties{p} {}
+        
+        bool operator==(const Vertex_flow& f) const
+        {
+            return this->demand     == f.demand
+                && this->properties == f.properties;
+        }
+        
+        bool operator!=(const Vertex_flow& f) const
+        {
+            return !operator==(f);
+        }
         
         friend std::ostream& 
-        operator<<(std::ostream& os, const Vertex& v)
+        operator<<(std::ostream& os, const Vertex_flow& v)
         {
-            os << "{ id:" << v.id << ", flux:" << v.flux;
-            if(v.capacity) os << ", capacity:"    << v.capacity; 
-            if(v.flux)     os << ", requirement:" << v.flux;
-            os << ", properties:" << v.properties << " }";
+            os << "{ ";
+            if(v.demand) 
+                os << "demand:" << std::setw(3) << v.demand << ", ";
+            os << "properties:" << v.properties << " }";
             return os;
         }
     };
+    
+    template<
+        typename Properties  = graph::no_property,
+        typename Id          = unsigned long
+    >using Vertex = graph::Vertex<Vertex_flow<Properties>,Id>;
 }}
 
 #endif

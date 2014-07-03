@@ -15,49 +15,19 @@
 /* and limitations under the License.                                 */
 /**********************************************************************/
 
-#ifndef TCC_GRAPH_VERTEX_DEFINED
-#define TCC_GRAPH_VERTEX_DEFINED
+#ifndef TCC_GRAPH_CYCLE_DEFINED
+#define TCC_GRAPH_CYCLE_DEFINED
+
+// Default libraries
+#include <deque>
 
 // Libraries
-#include "Tags.tcc"
+#include "Arc.tcc"
 
-namespace graph
+namespace graph 
 {
-    template<
-        typename Properties = no_property,
-        typename Id         = unsigned long
-    >struct Vertex
-    {
-        using id_type       = Id;
-        using property_type = Properties;
-        
-        const Id id {};
-        property_type properties {};
-        
-        Vertex(const Id id, property_type properties = {})
-            : id{id}, properties{properties} {}
-        
-        Vertex(const Id id, const Vertex& prototype)
-            : id{id}, properties{prototype.properties} {}
-        
-        bool operator==(const Vertex& v) const
-        {
-            return this->id == v.id 
-                && this->properties == v.properties;
-        }
-        
-        bool operator!=(const Vertex& v) const
-        {
-            return !operator==(v);
-        }
-        
-        friend std::ostream& 
-        operator<<(std::ostream& os, const Vertex& v)
-        {
-            os << "{" << v.id << ", " << v.properties << "}";
-            return os;
-        }
-    };
+    template<typename Arc = graph::Arc<>>
+    using Cycle = std::deque<Arc>;
 }
 
 #endif

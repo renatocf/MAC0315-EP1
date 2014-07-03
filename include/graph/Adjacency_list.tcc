@@ -21,29 +21,130 @@
 // Default libraries
 #include <list>
 #include <vector>
+#include <algorithm>
 #include <initializer_list>
+#include <iostream>
 
 // Libraries
-#include "Vertex.tcc"
 #include "Arc.tcc"
+#include "Tags.tcc"
+#include "Vertex.tcc"
+#include "Arc_list.tcc"
+#include "Exception.tcc"
+#include "Vertex_list.tcc"
 
 namespace graph 
 {
     template<
-        typename Arc = graph::Arc<>,
-        typename Col = std::list<Arc>,
-        typename Row = std::vector<Col>
+        typename Vertex_list, typename Arc_list, typename directed
+    >struct Adjacency_list_gen {};
+    
+    template<
+        typename Vertex_list, typename Arc_list
+    >struct Adjacency_list_gen<Vertex_list,Arc_list,directed>
+    {
+        using vertex_type     = typename Vertex_list::vertex_type;
+        using vertex_property = typename vertex_type::property_type;
+        using arc_type        = typename Arc_list::arc_type;
+        using arc_property    = typename arc_type::property_type;
+        using vertex_id       = typename vertex_type::id_type;
+        using arc_pair        = std::pair<vertex_type,arc_property>;
+        
+        // Adjacency list
+        std::vector<std::list<arc_pair>> adj_list {};
+        
+        Adjacency_list_gen(Vertex_list& vertices, Arc_list& arcs)
+            : adj_list{vertices.size()}
+        {
+            for(arc_type& arc : arcs)
+            {
+                if(vertices[arc.beg.id] != arc.beg
+                || vertices[arc.end.id] != arc.end)
+                    throw graph::id_not_found{};
+                
+                this->adj_list[arc.beg.id].push_back(
+                    { arc.end, arc.properties }
+                );
+            }
+        }
+    };
+    
+    template<
+        typename Vertex_list, typename Arc_list
+    >struct Adjacency_list_gen<Vertex_list,Arc_list,undirected>
+    {
+        using vertex_type    = typename Vertex_list::vertex_type;
+        using arc_type       = typename Arc_list::arc_type;
+        using vertex_id_type = typename vertex_type::id_type;
+        
+        // Adjacency list
+        std::vector<std::list<arc_type>> adj_list {};
+        
+        Adjacency_list_gen(Vertex_list& vertices, Arc_list& arcs)
+            : adj_list{vertices.size()}
+        {
+            for(arc_type& arc : arcs)
+            {
+                if(vertices[arc.beg.id] != arc.beg
+                || vertices[arc.end.id] != arc.end)
+                    throw graph::id_not_found{};
+                
+                this->adj_list[arc.beg.id].push_back(arc);
+            }
+        }
+    };
+    
+    template<
+        typename Vertex_list, typename Arc_list
+    >struct Adjacency_list_gen<Vertex_list,Arc_list,graph::bidirectional>
+    {
+        using vertex_type     = typename Vertex_list::vertex_type;
+        using vertex_property = typename vertex_type::property_type;
+        using arc_type        = typename Arc_list::arc_type;
+        using arc_property    = typename arc_type::property_type;
+        using vertex_id       = typename vertex_type::id_type;
+        using arc_pair        = std::pair<vertex_type,arc_property>;
+        
+        // Adjacency list
+        std::vector<std::list<arc_pair>> adj_list {};
+        
+        Adjacency_list_gen(Vertex_list& vertices, Arc_list& arcs)
+            : adj_list{vertices.size()}
+        {
+            for(arc_type& arc : arcs)
+            {
+                if(vertices[arc.beg.id] != arc.beg
+                || vertices[arc.end.id] != arc.end)
+                    throw graph::id_not_found{};
+                
+                this->adj_list[arc.beg.id].push_back(
+                    { arc.end, arc.properties }
+                );
+                this->adj_list[arc.end.id].push_back(
+                    { arc.beg, arc.properties }
+                );
+            }
+        }
+    };
+    
+    template<
+        typename Directed    = graph::directed,
+        typename Vertex_list = graph::Vertex_list<>,
+        typename Arc_list    = graph::Arc_list<graph::Arc<
+                                typename Vertex_list::vertex_type>>
     >class Adjacency_list
+        : public Adjacency_list_gen<Vertex_list,Arc_list,Directed>
     {
         private:
-            Row adj_list {};
-        
+            using Generator = 
+            Adjacency_list_gen<Vertex_list,Arc_list,Directed>;
+           
         public:
-            Adjacency_list(std::initializer_list<Arc> arcs)
-            {
-                for(auto& arc : arcs)
-                    adj_list[arc.beg.id].push_back(arc);
-            }
+            using vertex_type = typename Generator::vertex_type;
+            using arc_type    = typename Generator::arc_type;
+        
+            Adjacency_list(Vertex_list vertices = {}, Arc_list arcs = {})
+                : Generator{vertices,arcs} {}
     };
 }
 

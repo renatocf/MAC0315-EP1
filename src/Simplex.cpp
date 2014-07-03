@@ -52,14 +52,35 @@ int main(int argc, char **argv)
     graph::flow::Vertex<> v1 { 0 };
     graph::flow::Vertex<> v2 { 1 };
     
-    graph::flow::Arc<> a1 { v1, v2, -1 };
-    graph::flow::Arc<> a2 { v2, v1,  1 };
+    graph::flow::Arc<> a1 { v1, v2 };
+    graph::flow::Arc<> a2 { v2, v1 };
     
+    cout << "Vertex list" << endl;
+    cout << "=======================" << endl;
+    using vertex      = graph::flow::Vertex<>;
+    using vertex_list = graph::Vertex_list<vertex>;
     graph::Vertex_list<graph::flow::Vertex<>> vl { v1, v2 };
     cout << vl << endl;
     
+    cout << "Arc list" << endl;
+    cout << "=======================" << endl;
+    using arc      = graph::flow::Arc<>;
+    using arc_list = graph::Arc_list<arc>;
     graph::Arc_list<graph::flow::Arc<>> al { a1, a2 };
     cout << al << endl;
+    
+    cout << "Adjacency list" << endl;
+    cout << "=======================" << endl;
+    using adjacency_list = 
+    graph::Adjacency_list<graph::directed,vertex_list,arc_list>;
+    adjacency_list adj { vl, al };
+    
+    cout << "Digraph" << endl;
+    cout << "=======================" << endl;
+    using digraph =
+    graph::Digraph<vertex,arc>;
+    
+    digraph G { vl, al };
     
     return EXIT_SUCCESS;
 }

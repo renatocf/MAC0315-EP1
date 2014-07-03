@@ -23,19 +23,22 @@
 
 // Libraries
 #include "Arc.tcc"
+#include "Tags.tcc"
 #include "Vertex.tcc"
 #include "Arc_list.tcc"
-#include "Properties.tcc"
 #include "Vertex_list.tcc"
 #include "Adjacency_list.tcc"
 
 namespace graph 
 {
     template<
-        typename Vertex     = graph::Vertex<>,
-        typename Arc        = graph::Arc<>,
-        typename Structure  = graph::Adjacency_list<>,
-        typename Properties = no_property
+        typename Vertex      = Vertex<>,
+        typename Arc         = Arc<Vertex>,
+        typename Properties  = no_property,
+        typename Vertex_list = Vertex_list<Vertex>,
+        typename Arc_list    = Arc_list<Arc>,
+        typename Structure   = Adjacency_list
+                               <directed,Vertex_list,Arc_list>
     >class Digraph
     {
         private:
@@ -43,21 +46,17 @@ namespace graph
             using arc_property_type    = typename Arc::property_type;
             using vertex_property_type = typename Vertex::property_type;
             
-            Vertex_list<vertex_property_type> vl {};
-            Arc_list<Arc> al   {};
-            Structure    data {};
-            
-            property_type properties   {};
-            
+            Structure     digraph    {};
+            property_type properties {};
             unsigned long vertices   {};
             unsigned long arcs       {};
 
         public:
-            Digraph(Vertex_list<vertex_property_type> vl = {}, 
-                    Arc_list<Arc> al = {}, property_type properties = {})
-                : vl{vl}, al{al}, properties{properties},
+            Digraph(Vertex_list vl = {}, Arc_list al = {}, 
+                    property_type properties = {})
+                : digraph{vl,al}, properties{properties},
                   vertices{vl.size()}, arcs{al.size()} {}
-    };   
+    };
 }
 
 #endif

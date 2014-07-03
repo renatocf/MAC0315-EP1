@@ -26,32 +26,55 @@
 #include "graph/Arc.tcc"
 
 namespace graph {
-namespace flow 
+namespace flow
 {
     template<
-        typename Vertex     = graph::flow::Vertex<>,
-        typename Properties = graph::no_property,
-        typename Demand     = int
-    >struct Arc : public graph::Arc<Vertex,Properties>
+        typename Properties  = graph::no_property,
+        typename Flux        = unsigned int,
+        typename Capacity    = unsigned int,
+        typename Requirement = unsigned int
+    >struct Arc_flow
     {
-        using property_type = Properties;
+        Flux        flux        = {};
+        Capacity    capacity    = {};
+        Requirement requirement = {};
+        Properties  properties  = {};
         
-        Demand demand = {};
+        Arc_flow(Flux f = {}, Capacity c = {}, Requirement r = {}, 
+                 Properties p = {})
+            : flux{f}, capacity{c}, requirement{r}, properties{p} {}
         
-        Arc(const Vertex& beg, const Vertex& end, 
-            Demand demand = {}, const property_type properties = {})
-            : graph::Arc<Vertex,Properties>{beg,end,properties}, 
-              demand{demand} {}
+        bool operator==(const Arc_flow& f) const
+        {
+            return this->flux        == f.flux
+                && this->capacity    == f.capacity
+                && this->requirement == f.requirement
+                && this->properties  == f.properties;
+        }
+        
+        bool operator!=(const Arc_flow& f) const
+        {
+            return !operator==(f);
+        }
         
         friend std::ostream& 
-        operator<<(std::ostream& os, const Arc& a)
+        operator<<(std::ostream& os, const Arc_flow& f)
         {
-            os << "{ beg:" << a.beg << ", end:" << a.end;
-            if(a.demand) os << ", demand:" << std::setw(3) << a.demand;
-            os << ", properties:" << a.properties << " }";
+            os << "{ ";
+                           os << "flux:"          << f.flux;
+            if(f.capacity) os << ", capacity:"    << f.capacity; 
+            if(f.flux)     os << ", requirement:" << f.flux;
+                           os << ", properties:"  << f.properties;
+            os << " }";
             return os;
         }
     };
+        
+    template<
+        typename Vertex     = graph::flow::Vertex<>,
+        typename Properties = graph::no_property,
+        typename Directed   = graph::directed
+    >using Arc = graph::Arc<Vertex,Arc_flow<Properties>,Directed>;
 }}
 
 #endif

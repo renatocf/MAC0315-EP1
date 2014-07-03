@@ -15,49 +15,30 @@
 /* and limitations under the License.                                 */
 /**********************************************************************/
 
-#ifndef TCC_GRAPH_VERTEX_DEFINED
-#define TCC_GRAPH_VERTEX_DEFINED
+#ifndef TCC_GRAPH_PROPERTIES_DEFINED
+#define TCC_GRAPH_PROPERTIES_DEFINED
 
-// Libraries
-#include "Tags.tcc"
-
-namespace graph
+namespace graph 
 {
-    template<
-        typename Properties = no_property,
-        typename Id         = unsigned long
-    >struct Vertex
+    struct no_property
     {
-        using id_type       = Id;
-        using property_type = Properties;
+        no_property() {}
+        no_property(const no_property& np) {}
         
-        const Id id {};
-        property_type properties {};
-        
-        Vertex(const Id id, property_type properties = {})
-            : id{id}, properties{properties} {}
-        
-        Vertex(const Id id, const Vertex& prototype)
-            : id{id}, properties{prototype.properties} {}
-        
-        bool operator==(const Vertex& v) const
-        {
-            return this->id == v.id 
-                && this->properties == v.properties;
-        }
-        
-        bool operator!=(const Vertex& v) const
-        {
-            return !operator==(v);
-        }
+        bool operator==(const no_property& p) const { return true; }
+        bool operator!=(const no_property& p) const { return false; }
         
         friend std::ostream& 
-        operator<<(std::ostream& os, const Vertex& v)
+        operator<<(std::ostream& os, const no_property& n)
         {
-            os << "{" << v.id << ", " << v.properties << "}";
-            return os;
+            os << "none"; return os;
         }
     };
+    
+    // Directed properties
+    struct directed      {};
+    struct undirected    {};
+    struct bidirectional {};
 }
 
 #endif

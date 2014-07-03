@@ -26,16 +26,43 @@
 
 namespace graph 
 {
-    template<typename Arc = graph::Arc<>>
-    using Arc_list = std::vector<Arc>;
-            
-    template<typename Arc = graph::Arc<>> std::ostream& 
-    operator<<(std::ostream& os, const Arc_list<Arc>& al)
+    template<
+        typename Arc = graph::Arc<>
+    >class Arc_list
     {
-        for(auto it = al.begin(); it != al.end(); ++it)
-            os << *it << endl;
-        return os;
-    }
+        private:
+            std::vector<Arc> al;
+        
+        public:
+            using arc_type      = Arc;
+            using vertex_type   = typename Arc::vertex_type;
+            
+            // Iterators
+            using iterator =
+            typename std::vector<Arc>::iterator;
+            using const_iterator =
+            typename std::vector<Arc>::const_iterator;
+            
+            Arc_list(std::initializer_list<Arc> arcs)
+                : al{arcs} {}
+            
+            unsigned long size() { return al.size(); }
+            
+            friend std::ostream& 
+            operator<<(std::ostream& os, const Arc_list<Arc>& al)
+            {
+                for(auto it = al.begin(); it != al.end(); ++it)
+                    os << *it << endl;
+                return os;
+            }
+            
+            // Iterators
+            iterator begin() { return al.begin(); }
+            iterator end()   { return al.end();   }
+            
+            const_iterator begin() const { return al.begin(); }
+            const_iterator end()   const { return al.end();   }
+    };
 }
 
 #endif
