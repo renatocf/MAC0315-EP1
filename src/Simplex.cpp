@@ -58,29 +58,53 @@ int main(int argc, char **argv)
     cout << "Vertex list" << endl;
     cout << "=======================" << endl;
     using vertex      = graph::flow::Vertex<>;
-    using vertex_list = graph::Vertex_list<vertex>;
-    graph::Vertex_list<graph::flow::Vertex<>> vl { v1, v2 };
-    cout << vl << endl;
+    using vertex_list = std::vector<vertex>;
+    vertex_list vl { v1, v2 };
+    for(const vertex& v : vl)
+        cout << v << endl;
     
     cout << "Arc list" << endl;
     cout << "=======================" << endl;
     using arc      = graph::flow::Arc<>;
-    using arc_list = graph::Arc_list<arc>;
-    graph::Arc_list<graph::flow::Arc<>> al { a1, a2 };
-    cout << al << endl;
+    using arc_list = std::vector<arc>;
+    arc_list al { a1, a2 };
+    for(const arc& a : al)
+        cout << a << endl;
     
     cout << "Adjacency list" << endl;
     cout << "=======================" << endl;
     using adjacency_list = 
-    graph::Adjacency_list<graph::directed,vertex_list,arc_list>;
+    graph::Adjacency_list<graph::directed,vertex,arc>;
     adjacency_list adj { vl, al };
     
     cout << "Digraph" << endl;
     cout << "=======================" << endl;
     using digraph =
-    graph::Digraph<vertex,arc>;
+    graph::Adjacency_list<graph::directed,vertex,arc>;
+
+    vertex_list tr1_v;
     
-    digraph G { vl, al };
+    vertex::id_type id {};
+    for(size_t i = 0; i < 5; i++) 
+        tr1_v.emplace_back(id++);
+    
+    arc_list tr1_a { 
+        arc{ tr1_v[0], tr1_v[1], {9 } },
+        arc{ tr1_v[0], tr1_v[3], {10} },
+        arc{ tr1_v[1], tr1_v[2], {7 } },
+        arc{ tr1_v[1], tr1_v[3], {4 } },
+        arc{ tr1_v[1], tr1_v[4], {5 } },
+        arc{ tr1_v[2], tr1_v[4], {9 } },
+        arc{ tr1_v[3], tr1_v[1], {4 } },
+        arc{ tr1_v[3], tr1_v[4], {9 } }
+    };
+
+    digraph T { tr1_v, tr1_a };
+    
+    auto it  = T.out_arcs(tr1_v[0]).first;
+    auto end = T.out_arcs(tr1_v[0]).second;
+    for(; it != end; it++)
+        cout << **it << endl;
     
     return EXIT_SUCCESS;
 }
