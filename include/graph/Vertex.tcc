@@ -28,14 +28,14 @@ namespace graph
         typename Id         = unsigned long
     >struct Vertex
     {
-        using id_type       = Id;
-        using property_type = Properties;
+        typedef Id         id_type;
+        typedef Properties property_type;
         
-        const Id id {};
-        property_type properties {};
+        const Id id;
+        property_type properties;
         
         explicit
-        Vertex(const Id id, property_type properties = {})
+        Vertex(const Id id, property_type properties = property_type{})
             : id{id}, properties{properties} {}
         
         explicit

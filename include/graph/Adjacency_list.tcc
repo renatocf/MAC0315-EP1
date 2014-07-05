@@ -50,14 +50,14 @@ namespace graph
         <directed,Vertex,Arc,Vertex_list,Arc_list,AllocV,AllocA>
     {
         public:
-            using vertex_type     = Vertex;
-            using vertex_property = typename vertex_type::property_type;
-            using vertex_id       = typename vertex_type::id_type;
-            using VertexList      = Vertex_list<vertex_type*,AllocV>;
-            
-            using arc_type        = Arc;
-            using arc_property    = typename arc_type::property_type;
-            using ArcList         = Arc_list<arc_type*,AllocA>;
+            typedef Vertex                              vertex_type;
+            typedef typename vertex_type::property_type vertex_property;
+            typedef typename vertex_type::id_type       vertex_id;
+            typedef Vertex_list<vertex_type*,AllocV>    VertexList;
+
+            typedef Arc                                 arc_type;
+            typedef typename arc_type::property_type    arc_property;
+            typedef Arc_list<arc_type*,AllocA>          ArcList;
             
         private:
             Vertex_list<vertex_type,AllocV>  vertices; // Vertices
@@ -65,7 +65,7 @@ namespace graph
             
             Vertex_list< // Adjacency list
                 std::tuple<VertexList,ArcList>,AllocV
-            > adj_list {};
+            > adj_list;
         public:
             
             Adjacency_list_gen(
@@ -80,11 +80,11 @@ namespace graph
                         throw graph::id_not_found{};
                     
                     // Create a copy of the arc with internal references
-                    this->arcs.emplace_back(
+                    this->arcs.push_back(arc_type{
                         this->vertices[arc.beg.id],
                         this->vertices[arc.end.id],
                         arc.properties
-                    );
+                    });
                     
                     // Put a pointer to the arc end vertex
                     std::get<0>(this->adj_list[arc.beg.id]).push_back(
@@ -96,7 +96,7 @@ namespace graph
                 }
             }
             
-            using out_arcs_iterator = typename VertexList::iterator;
+            typedef typename VertexList::iterator out_arcs_iterator;
             
             VertexList& out_arcs_list(const Vertex& v)       
             { return this->adj_list[v.id].first; }
@@ -121,14 +121,14 @@ namespace graph
         <undirected,Vertex,Arc,Vertex_list,Arc_list,AllocV,AllocA>
     {
         public:
-            using vertex_type     = Vertex;
-            using vertex_property = typename vertex_type::property_type;
-            using vertex_id       = typename vertex_type::id_type;
-            using VertexList      = Vertex_list<vertex_type*,AllocV>;
+            typedef Vertex                              vertex_type;
+            typedef typename vertex_type::property_type vertex_property;
+            typedef typename vertex_type::id_type       vertex_id;
+            typedef Vertex_list<vertex_type*,AllocV>    VertexList;
             
-            using arc_type        = Arc;
-            using arc_property    = typename arc_type::property_type;
-            using ArcList         = Arc_list<arc_type*,AllocA>;
+            typedef Arc arc_type;
+            typedef typename arc_type::property_type    arc_property;
+            typedef Arc_list<arc_type*,AllocA>          ArcList;
             
         private:
             Vertex_list<vertex_type,AllocV>  vertices; // Vertices
@@ -136,7 +136,7 @@ namespace graph
             
             Vertex_list< // Adjacency list
                 std::tuple<VertexList,ArcList>,AllocV
-            > adj_list {};
+            > adj_list;
         public:
             
             Adjacency_list_gen(
@@ -167,8 +167,8 @@ namespace graph
                 }
             }
             
-            using out_arcs_iterator = typename VertexList::iterator;
-            using in_arcs_iterator  = typename VertexList::iterator;
+            typedef typename VertexList::iterator out_arcs_iterator;
+            typedef typename VertexList::iterator in_arcs_iterator;
             
             VertexList& out_arcs_list(const Vertex& v)       
             { return this->adj_list[v.id].first; }
@@ -206,14 +206,14 @@ namespace graph
         <bidirectional,Vertex,Arc,Vertex_list,Arc_list,AllocV,AllocA>
     {
         public:
-            using vertex_type     = Vertex;
-            using vertex_property = typename vertex_type::property_type;
-            using vertex_id       = typename vertex_type::id_type;
-            using VertexList      = Vertex_list<vertex_type*,AllocV>;
+            typedef Vertex                              vertex_type;
+            typedef typename vertex_type::property_type vertex_property;
+            typedef typename vertex_type::id_type       vertex_id;
+            typedef Vertex_list<vertex_type*,AllocV>    VertexList;
             
-            using arc_type        = Arc;
-            using arc_property    = typename arc_type::property_type;
-            using ArcList         = Arc_list<arc_type*,AllocA>;
+            typedef Arc arc_type;
+            typedef typename arc_type::property_type    arc_property;
+            typedef Arc_list<arc_type*,AllocA>          ArcList;
             
         private:
             Vertex_list<vertex_type,AllocV>  vertices; // Vertices
@@ -221,7 +221,7 @@ namespace graph
             
             Vertex_list< // Adjacency list
                 std::tuple<VertexList,VertexList,ArcList>,AllocV
-            > adj_list {};
+            > adj_list;
         public:
             
             Adjacency_list_gen(
@@ -256,8 +256,8 @@ namespace graph
                 }
             }
             
-            using out_arcs_iterator = typename VertexList::iterator;
-            using in_arcs_iterator  = typename VertexList::iterator;
+            typedef typename VertexList::iterator out_arcs_iterator;
+            typedef typename VertexList::iterator in_arcs_iterator;
             
             VertexList& out_arcs_list(const Vertex& v)       
             { return std::get<0>(this->adj_list[v.id]); }
@@ -299,24 +299,26 @@ namespace graph
             <Directed,Vertex,Arc,Vertex_list,Arc_list,AllocV,AllocA>
     {
         private:
-            using Generator = Adjacency_list_gen
-                <Directed,Vertex,Arc,Vertex_list,Arc_list,AllocV,AllocA>;
+            typedef Adjacency_list_gen
+                <Directed,Vertex,Arc,Vertex_list,Arc_list,AllocV,AllocA>
+            Generator;
            
         public:
-            using vertex_type      = Vertex;
-            using vertex_allocator = AllocV;
+            typedef Vertex vertex_type;
+            typedef AllocV vertex_allocator;
             
-            using arc_type         = Arc;
-            using arc_allocator    = AllocA;
+            typedef Arc    arc_type;
+            typedef AllocA arc_allocator;
             
-            using arc_list    = Arc_list<arc_type,arc_allocator>;
-            using vertex_list = Vertex_list<vertex_type,vertex_allocator>;
+            typedef Arc_list<arc_type,arc_allocator>          arc_list;
+            typedef Vertex_list<vertex_type,vertex_allocator> vertex_list;
              
-            Adjacency_list(vertex_list vertices = {}, arc_list arcs = {})
+            Adjacency_list(vertex_list vertices = vertex_list{}, 
+                           arc_list arcs = arc_list{})
                 : Generator{vertices,arcs} {}
             
-            using out_arcs_iterator =
-            typename Generator::out_arcs_iterator;
+            typedef typename Generator::out_arcs_iterator 
+            out_arcs_iterator;
             
             inline std::pair<out_arcs_iterator,out_arcs_iterator>
             out_arcs(const Vertex& v) 

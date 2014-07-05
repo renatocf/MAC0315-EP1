@@ -29,10 +29,10 @@ namespace flow
         typename Demand      = int
     >struct Vertex_flow
     {
-        Demand     demand     = {};
-        Properties properties = {};
+        Demand     demand;
+        Properties properties;
         
-        Vertex_flow(Demand d = {}, Properties p = {})
+        Vertex_flow(Demand d = Demand{}, Properties p = Properties{})
             : demand{d}, properties{p} {}
         
         bool operator==(const Vertex_flow& f) const
@@ -60,7 +60,8 @@ namespace flow
     template<
         typename Properties  = graph::no_property,
         typename Id          = unsigned long
-    >using Vertex = graph::Vertex<Vertex_flow<Properties>,Id>;
+    >struct Vertex 
+    { typedef graph::Vertex<Vertex_flow<Properties>,Id> type; };
 }}
 
 #endif

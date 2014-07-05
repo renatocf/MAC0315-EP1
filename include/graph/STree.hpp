@@ -37,7 +37,7 @@ namespace graph
     >class STree
     {
         private:
-            std::vector<typename Vertex::id_type> parnt {};
+            std::vector<typename Vertex::id_type> parnt;
             
         public:        
             STree(size_t n_vertex, std::initializer_list<Arc> arcs)
@@ -47,8 +47,8 @@ namespace graph
                     parnt[arc.beg.id] = arc.end.id;
             }
             
-            using vertex_type = Vertex;
-            using arc_type    = Arc;
+            typedef Vertex vertex_type;
+            typedef Arc    arc_type;
             
             Cycle fundamental_cycle(const Arc& inserted)
             {

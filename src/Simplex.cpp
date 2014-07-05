@@ -49,39 +49,34 @@ int main(int argc, char **argv)
         return EXIT_FAILURE;
     }
     
-    graph::flow::Vertex<> v1 { 0 };
-    graph::flow::Vertex<> v2 { 1 };
+    typedef graph::flow::Vertex<>::type vertex;
+    typedef graph::flow::Arc<>::type    arc;
     
-    graph::flow::Arc<> a1 { v1, v2 };
-    graph::flow::Arc<> a2 { v2, v1 };
+    vertex v1 { 0 }, v2 { 1 };
+    arc a1 { v1, v2 }, a2 { v2, v1 };
     
     cout << "Vertex list" << endl;
     cout << "=======================" << endl;
-    using vertex      = graph::flow::Vertex<>;
-    using vertex_list = std::vector<vertex>;
+    typedef std::vector<vertex>         vertex_list;
     vertex_list vl { v1, v2 };
     for(const vertex& v : vl)
         cout << v << endl;
     
     cout << "Arc list" << endl;
     cout << "=======================" << endl;
-    using arc      = graph::flow::Arc<>;
-    using arc_list = std::vector<arc>;
+    typedef std::vector<arc>         arc_list;
     arc_list al { a1, a2 };
     for(const arc& a : al)
         cout << a << endl;
     
     cout << "Adjacency list" << endl;
     cout << "=======================" << endl;
-    using adjacency_list = 
-    graph::Adjacency_list<graph::directed,vertex,arc>;
-    adjacency_list adj { vl, al };
+    typedef graph::Adjacency_list<graph::directed,vertex,arc> digraph;
+    digraph adj { vl, al };
     
     cout << "Digraph" << endl;
     cout << "=======================" << endl;
-    using digraph =
-    graph::Adjacency_list<graph::directed,vertex,arc>;
-
+    
     vertex_list tr1_v;
     
     vertex::id_type id {};

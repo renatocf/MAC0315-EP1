@@ -29,16 +29,16 @@ namespace graph
         typename Directed   = directed
     >struct Arc
     {
-        using vertex_type   = Vertex;
-        using property_type = Properties;
+        typedef Vertex     vertex_type;
+        typedef Properties property_type;
         
         const Vertex& beg;
         const Vertex& end;
-        property_type properties {};
+        property_type properties;
         
         explicit
         Arc(const Vertex& beg, const Vertex& end, 
-            const property_type properties = {})
+            const property_type properties = property_type{})
             : beg{beg}, end{end}, properties{properties} {}
         
         bool operator==(const Arc& a) const

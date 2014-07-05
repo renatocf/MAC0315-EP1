@@ -36,14 +36,15 @@ namespace flow
         typename Requirement = unsigned int
     >struct Arc_flow
     {
-        Cost        cost        = {};
-        Flux        flux        = {};
-        Capacity    capacity    = {};
-        Requirement requirement = {};
-        Properties  properties  = {};
+        Cost        cost;
+        Flux        flux;
+        Capacity    capacity;
+        Requirement requirement;
+        Properties  properties;
         
-        Arc_flow(Cost k = {}, Flux f = {}, Capacity c = {}, 
-                 Requirement r = {}, Properties p = {})
+        Arc_flow(
+            Cost k = Cost{}, Flux f = Flux{}, Capacity c = Capacity{}, 
+            Requirement r = Requirement{}, Properties p = Properties{})
             : cost{k}, flux{f}, capacity{c}, 
               requirement{r}, properties{p} {}
         
@@ -74,12 +75,13 @@ namespace flow
             return os;
         }
     };
-        
+    
     template<
-        typename Vertex     = graph::flow::Vertex<>,
+        typename Vertex     = graph::flow::Vertex<>::type,
         typename Properties = graph::no_property,
         typename Directed   = graph::directed
-    >using Arc = graph::Arc<Vertex,Arc_flow<Properties>,Directed>;
+    >struct Arc
+    { typedef graph::Arc<Vertex,Arc_flow<Properties>,Directed> type; };
 }}
 
 #endif
