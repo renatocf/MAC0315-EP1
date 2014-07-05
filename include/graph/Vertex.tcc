@@ -34,9 +34,11 @@ namespace graph
         const Id id {};
         property_type properties {};
         
+        explicit
         Vertex(const Id id, property_type properties = {})
             : id{id}, properties{properties} {}
         
+        explicit
         Vertex(const Id id, const Vertex& prototype)
             : id{id}, properties{prototype.properties} {}
         
