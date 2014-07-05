@@ -36,6 +36,7 @@ namespace graph
         const Vertex& end;
         property_type properties {};
         
+        explicit
         Arc(const Vertex& beg, const Vertex& end, 
             const property_type properties = {})
             : beg{beg}, end{end}, properties{properties} {}
