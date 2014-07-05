@@ -21,6 +21,8 @@
 // Default libraries
 #include <unordered_map>
 #include <initializer_list>
+#include <iostream>
+#include <memory>
 
 // Libraries
 #include "Tags.tcc"
@@ -30,17 +32,16 @@
 namespace graph 
 {
     template<
-        typename Vertex = graph::Vertex<>
+        typename Vertex = graph::Vertex<>, 
+        typename Alloc  = std::allocator<Vertex>
     >class Vertex_list
     {
         private:
-            using id_type = typename Vertex::id_type;
-            
+            using id_type       = typename Vertex::id_type;
             mutable std::unordered_map<id_type,Vertex> vl {};
             mutable id_type _max_id {};
         
         public:
-            
             using vertex_type   = Vertex;
             using property_type = typename Vertex::property_type;
             
@@ -52,20 +53,24 @@ namespace graph
             
             Vertex_list(std::initializer_list<Vertex> vertices)
             {
+                std::cout << "List constructor" << std::endl;
                 for(const Vertex& v : vertices)
                     if(vl.find(v.id) == vl.end())
                     {
-                        vl.insert({v.id, v});
+                        vl.emplace(v.id,Vertex{v});
                         if(v.id > _max_id) _max_id = v.id;
                     }
                     else throw graph::id_repeated{};
             }
             
-            Vertex_list(const id_type n, const Vertex& prototype = {})
+            Vertex_list(size_t n, const Vertex& prototype = Vertex{{}})
             {
-                for(id_type id {}; id < n; id++)
+                std::cout << "Range constructor" << std::endl;
+                id_type id {};
+                for(size_t m = 0; m < n; ++id, ++m)
                 {
-                    vl.insert({id,prototype});
+                    std::cout << "construct with id " << id << std::endl;
+                    vl.emplace(id,Vertex{id,prototype});
                     if(id > _max_id) _max_id = id;
                 }
             }

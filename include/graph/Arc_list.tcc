@@ -20,6 +20,7 @@
 
 // Default libraries
 #include <vector>
+#include <memory>
 
 // Libraries
 #include "Arc.tcc"
@@ -27,11 +28,12 @@
 namespace graph 
 {
     template<
-        typename Arc = graph::Arc<>
+        typename Arc   = graph::Arc<>,
+        typename Alloc = std::allocator<Arc>
     >class Arc_list
     {
         private:
-            std::vector<Arc> al;
+            std::vector<Arc,Alloc> al;
         
         public:
             using arc_type      = Arc;
