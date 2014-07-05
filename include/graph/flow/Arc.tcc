@@ -30,23 +30,27 @@ namespace flow
 {
     template<
         typename Properties  = graph::no_property,
+        typename Cost        = unsigned int,
         typename Flux        = unsigned int,
         typename Capacity    = unsigned int,
         typename Requirement = unsigned int
     >struct Arc_flow
     {
+        Cost        cost        = {};
         Flux        flux        = {};
         Capacity    capacity    = {};
         Requirement requirement = {};
         Properties  properties  = {};
         
-        Arc_flow(Flux f = {}, Capacity c = {}, Requirement r = {}, 
-                 Properties p = {})
-            : flux{f}, capacity{c}, requirement{r}, properties{p} {}
+        Arc_flow(Cost k = {}, Flux f = {}, Capacity c = {}, 
+                 Requirement r = {}, Properties p = {})
+            : cost{k}, flux{f}, capacity{c}, 
+              requirement{r}, properties{p} {}
         
         bool operator==(const Arc_flow& f) const
         {
-            return this->flux        == f.flux
+            return this->cost        == f.cost
+                && this->flux        == f.flux
                 && this->capacity    == f.capacity
                 && this->requirement == f.requirement
                 && this->properties  == f.properties;
@@ -61,6 +65,7 @@ namespace flow
         operator<<(std::ostream& os, const Arc_flow& f)
         {
             os << "{ ";
+                           os << "cost:"          << f.cost;
                            os << "flux:"          << f.flux;
             if(f.capacity) os << ", capacity:"    << f.capacity; 
             if(f.flux)     os << ", requirement:" << f.flux;
