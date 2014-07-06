@@ -45,9 +45,6 @@ namespace graph
                 : beg_ptr{&beg}, end_ptr{&end}, 
                   properties{properties} {}
             
-            // Vertex& beg() { return *(this->beg_ptr); }
-            // Vertex& end() { return *(this->end_ptr); }
-            
             const Vertex& beg() const { return *(this->beg_ptr); }
             const Vertex& end() const { return *(this->end_ptr); }
             
