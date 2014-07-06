@@ -18,6 +18,9 @@
 #ifndef TCC_GRAPH_PROPERTIES_DEFINED
 #define TCC_GRAPH_PROPERTIES_DEFINED
 
+// Default libraries
+#include <iostream>
+
 namespace graph 
 {
     struct no_property
