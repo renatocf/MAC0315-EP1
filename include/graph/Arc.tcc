@@ -42,17 +42,24 @@ namespace graph
             : beg{beg}, end{end}, properties{properties} {}
         
         // Copy constructor and assignment
+        Arc(Arc& copied)
+            : beg{copied.beg}, end{copied.end}, properties{properties} {}
         Arc(const Arc& copied)
             : beg{copied.beg}, end{copied.end}, properties{properties} {}
         
         Arc& operator=(Arc& copied) { return *this; }
+        const Arc& operator=(const Arc& copied) const { return *this; }
         
         // Move constructor and assignment
+        Arc(Arc&& moved) 
+            : beg{moved.beg}, end{moved.end}, 
+              properties{std::move(properties)} {}
         Arc(const Arc&& moved) 
             : beg{moved.beg}, end{moved.end}, 
               properties{std::move(properties)} {}
         
         Arc& operator=(Arc&& moved) { return *this; }
+        const Arc& operator=(const Arc&& moved) const { return *this; }
         
         // Comparison operators
         bool operator==(const Arc& a) const

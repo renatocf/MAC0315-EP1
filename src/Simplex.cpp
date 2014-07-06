@@ -55,16 +55,24 @@ int main(int argc, char **argv)
     vertex v1 { 0 }, v2 { 1 };
     arc a1 { v1, v2 }, a2 { v2, v1 };
     
+    cout << a1.beg << endl;
+    cout << a1.end << endl;
+    cout << a1 << endl;
+    
+    cout << a2.beg << endl;
+    cout << a2.end << endl;
+    cout << a2 << endl;
+    
     cout << "Vertex list" << endl;
     cout << "=======================" << endl;
-    typedef std::vector<vertex>         vertex_list;
+    typedef std::vector<vertex> vertex_list;
     vertex_list vl { v1, v2 };
     for(const vertex& v : vl)
         cout << v << endl;
     
     cout << "Arc list" << endl;
     cout << "=======================" << endl;
-    typedef std::vector<arc>         arc_list;
+    typedef std::vector<arc> arc_list;
     arc_list al { a1, a2 };
     for(const arc& a : al)
         cout << a << endl;
