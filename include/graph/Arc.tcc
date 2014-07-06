@@ -27,60 +27,47 @@ namespace graph
         typename Vertex     = graph::Vertex<>,
         typename Properties = no_property,
         typename Directed   = directed
-    >struct Arc
+    >class Arc
     {
-        typedef Vertex     vertex_type;
-        typedef Properties property_type;
-        
-        const Vertex& beg;
-        const Vertex& end;
-        property_type properties;
-        
-        explicit
-        Arc(const Vertex& beg, const Vertex& end, 
-            const property_type properties = property_type{})
-            : beg{beg}, end{end}, properties{properties} {}
-        
-        // Copy constructor and assignment
-        Arc(Arc& copied)
-            : beg{copied.beg}, end{copied.end}, properties{properties} {}
-        Arc(const Arc& copied)
-            : beg{copied.beg}, end{copied.end}, properties{properties} {}
-        
-        Arc& operator=(Arc& copied) { return *this; }
-        const Arc& operator=(const Arc& copied) const { return *this; }
-        
-        // Move constructor and assignment
-        Arc(Arc&& moved) 
-            : beg{moved.beg}, end{moved.end}, 
-              properties{std::move(properties)} {}
-        Arc(const Arc&& moved) 
-            : beg{moved.beg}, end{moved.end}, 
-              properties{std::move(properties)} {}
-        
-        Arc& operator=(Arc&& moved) { return *this; }
-        const Arc& operator=(const Arc&& moved) const { return *this; }
-        
-        // Comparison operators
-        bool operator==(const Arc& a) const
-        {
-            return this->beg        == a.beg
-                && this->end        == a.end
-                && this->properties == a.properties;
-        }
-        
-        bool operator!=(const Arc& a) const
-        {
-            return !operator==(a);
-        }
-        
-        friend std::ostream& 
-        operator<<(std::ostream& os, const Arc& a)
-        {
-            os << "{ beg:" << a.beg << ", end:" << a.end;
-            os << ", properties:" << a.properties << " }";
-            return os;
-        }
+        private:
+            const Vertex *beg_ptr;
+            const Vertex *end_ptr;
+            
+        public:
+            typedef Vertex     vertex_type;
+            typedef Properties property_type;
+            
+            property_type properties;
+            
+            explicit
+            Arc(const Vertex& beg, const Vertex& end, 
+                const property_type properties = property_type{})
+                : beg_ptr{&beg}, end_ptr{&end},
+                  properties{properties} {}
+            
+            const Vertex& beg() const { return *(this->beg_ptr); }
+            const Vertex& end() const { return *(this->end_ptr); }
+            
+            // Comparison operators
+            bool operator==(const Arc& a) const
+            {
+                return this->beg()      == a.beg()
+                    && this->end()      == a.end()
+                    && this->properties == a.properties;
+            }
+            
+            bool operator!=(const Arc& a) const
+            {
+                return !operator==(a);
+            }
+            
+            friend std::ostream& 
+            operator<<(std::ostream& os, const Arc& a)
+            {
+                os << "{ beg:" << a.beg() << ", end:" << a.end();
+                os << ", properties:" << a.properties << " }";
+                return os;
+            }
     };
 }
 
