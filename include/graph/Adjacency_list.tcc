@@ -75,23 +75,23 @@ namespace graph
             {
                 for(arc_type& arc : arcs)
                 {
-                    if(vertices[arc.beg.id] != arc.beg
-                    || vertices[arc.end.id] != arc.end)
+                    if(vertices[arc.beg().id] != arc.beg()
+                    || vertices[arc.end().id] != arc.end())
                         throw graph::id_not_found{};
                     
                     // Create a copy of the arc with internal references
                     this->arcs.emplace_back(
-                        this->vertices[arc.beg.id],
-                        this->vertices[arc.end.id],
+                        this->vertices[arc.beg().id],
+                        this->vertices[arc.end().id],
                         arc.properties
                     );
                     
                     // Put a pointer to the arc end vertex
-                    std::get<0>(this->adj_list[arc.beg.id]).push_back(
-                        &(this->vertices[arc.end.id]));
+                    std::get<0>(this->adj_list[arc.beg().id]).push_back(
+                        &(this->vertices[arc.end().id]));
                     
                     // Put a pointer to the arc
-                    std::get<1>(this->adj_list[arc.beg.id]).push_back(
+                    std::get<1>(this->adj_list[arc.beg().id]).push_back(
                         &(this->arcs.back()));
                 }
             }
@@ -146,23 +146,23 @@ namespace graph
             {
                 for(arc_type& arc : arcs)
                 {
-                    if(vertices[arc.beg.id] != arc.beg
-                    || vertices[arc.end.id] != arc.end)
+                    if(vertices[arc.beg().id] != arc.beg()
+                    || vertices[arc.end().id] != arc.end())
                         throw graph::id_not_found{};
                     
                     // Create a copy of the arc with internal references
                     this->arcs.emplace_back(
-                        this->vertices[arc.beg.id],
-                        this->vertices[arc.end.id],
+                        this->vertices[arc.beg().id],
+                        this->vertices[arc.end().id],
                         arc.properties
                     );
                     
                     // Put a pointer to the arc end vertex
-                    std::get<0>(this->adj_list[arc.beg.id]).push_back(
-                        &(this->vertices[arc.end.id]));
+                    std::get<0>(this->adj_list[arc.beg().id]).push_back(
+                        &(this->vertices[arc.end().id]));
                     
                     // Put a pointer to the arc
-                    std::get<1>(this->adj_list[arc.beg.id]).push_back(
+                    std::get<1>(this->adj_list[arc.beg().id]).push_back(
                         &(this->arcs.back()));
                 }
             }
@@ -231,27 +231,27 @@ namespace graph
             {
                 for(arc_type& arc : arcs)
                 {
-                    if(vertices[arc.beg.id] != arc.beg
-                    || vertices[arc.end.id] != arc.end)
+                    if(vertices[arc.beg().id] != arc.beg()
+                    || vertices[arc.end().id] != arc.end())
                         throw graph::id_not_found{};
                     
                     // Create a copy of the arc with internal references
                     this->arcs.emplace_back(
-                        this->vertices[arc.beg.id],
-                        this->vertices[arc.end.id],
+                        this->vertices[arc.beg().id],
+                        this->vertices[arc.end().id],
                         arc.properties
                     );
                     
                     // Put a pointer to the arc end vertex
-                    std::get<0>(this->adj_list[arc.beg.id]).push_back(
-                        &(this->vertices[arc.end.id]));
+                    std::get<0>(this->adj_list[arc.beg().id]).push_back(
+                        &(this->vertices[arc.end().id]));
                     
                     // Put a pointer to the arc begining vertex
-                    std::get<1>(this->adj_list[arc.end.id]).push_back(
-                        &(this->vertices[arc.beg.id]));
+                    std::get<1>(this->adj_list[arc.end().id]).push_back(
+                        &(this->vertices[arc.beg().id]));
                     
                     // Put a pointer to the arc
-                    this->adj_list[arc.beg.id].second.push_back(
+                    this->adj_list[arc.beg().id].second.push_back(
                         &(this->arcs.back()));
                 }
             }

@@ -27,39 +27,49 @@ namespace graph
         typename Vertex     = graph::Vertex<>,
         typename Properties = no_property,
         typename Directed   = directed
-    >struct Arc
+    >class Arc
     {
-        using vertex_type   = Vertex;
-        using property_type = Properties;
+        private:
+            const Vertex *beg_ptr;
+            const Vertex *end_ptr;
         
-        const Vertex& beg;
-        const Vertex& end;
-        property_type properties {};
-        
-        explicit
-        Arc(const Vertex& beg, const Vertex& end, 
-            const property_type properties = {})
-            : beg{beg}, end{end}, properties{properties} {}
-        
-        bool operator==(const Arc& a) const
-        {
-            return this->beg        == a.beg
-                && this->end        == a.end
-                && this->properties == a.properties;
-        }
-        
-        bool operator!=(const Arc& a) const
-        {
-            return !operator==(a);
-        }
-        
-        friend std::ostream& 
-        operator<<(std::ostream& os, const Arc& a)
-        {
-            os << "{ beg:" << a.beg << ", end:" << a.end;
-            os << ", properties:" << a.properties << " }";
-            return os;
-        }
+        public:
+            using vertex_type   = Vertex;
+            using property_type = Properties;
+            
+            property_type properties {};
+            
+            explicit
+            Arc(const Vertex& beg, const Vertex& end, 
+                const property_type properties = {})
+                : beg_ptr{&beg}, end_ptr{&end}, 
+                  properties{properties} {}
+            
+            // Vertex& beg() { return *(this->beg_ptr); }
+            // Vertex& end() { return *(this->end_ptr); }
+            
+            const Vertex& beg() const { return *(this->beg_ptr); }
+            const Vertex& end() const { return *(this->end_ptr); }
+            
+            bool operator==(const Arc& a) const
+            {
+                return this->beg()      == a.beg()
+                    && this->end()      == a.end()
+                    && this->properties == a.properties;
+            }
+            
+            bool operator!=(const Arc& a) const
+            {
+                return !operator==(a);
+            }
+            
+            friend std::ostream& 
+            operator<<(std::ostream& os, const Arc& a)
+            {
+                os << "{ beg:" << a.beg() << ", end:" << a.end();
+                os << ", properties:" << a.properties << " }";
+                return os;
+            }
     };
 }
 
