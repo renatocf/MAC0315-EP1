@@ -72,7 +72,7 @@ int main(int argc, char **argv)
     cout << "Adjacency list" << endl;
     cout << "=======================" << endl;
     typedef graph::Adjacency_list<graph::directed,vertex,arc> digraph;
-    digraph adj { vl, al };
+    digraph adj ( vl, al );
     
     cout << "Digraph" << endl;
     cout << "=======================" << endl;

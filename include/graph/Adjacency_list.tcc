@@ -80,11 +80,12 @@ namespace graph
                         throw graph::id_not_found{};
                     
                     // Create a copy of the arc with internal references
-                    this->arcs.push_back(arc_type{
+                    arc_type analogous { 
                         this->vertices[arc.beg.id],
                         this->vertices[arc.end.id],
                         arc.properties
-                    });
+                    };
+                    this->arcs.emplace_back(std::move(analogous));
                     
                     // Put a pointer to the arc end vertex
                     std::get<0>(this->adj_list[arc.beg.id]).push_back(

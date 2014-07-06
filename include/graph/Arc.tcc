@@ -41,6 +41,20 @@ namespace graph
             const property_type properties = property_type{})
             : beg{beg}, end{end}, properties{properties} {}
         
+        // Copy constructor and assignment
+        Arc(const Arc& copied)
+            : beg{copied.beg}, end{copied.end}, properties{properties} {}
+        
+        Arc& operator=(Arc& copied) { return *this; }
+        
+        // Move constructor and assignment
+        Arc(const Arc&& moved) 
+            : beg{moved.beg}, end{moved.end}, 
+              properties{std::move(properties)} {}
+        
+        Arc& operator=(Arc&& moved) { return *this; }
+        
+        // Comparison operators
         bool operator==(const Arc& a) const
         {
             return this->beg        == a.beg

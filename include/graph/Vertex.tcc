@@ -31,7 +31,7 @@ namespace graph
         typedef Id         id_type;
         typedef Properties property_type;
         
-        const Id id;
+        Id id;
         property_type properties;
         
         explicit
