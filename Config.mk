@@ -15,8 +15,8 @@ BIN      := Simplex
 
 # Flags
 # ASFLAGS  := # Assembly Flags
-# CFLAGS   := # C Flags
-# CXXFLAGS := # C++ Flags
+CFLAGS   := -Wall -ansi -pedantic -O2 -g
+CXXFLAGS := $(CFLAGS) -std=c++0x
 # LDFLAGS  := # Linker flags
 
 # Documentation

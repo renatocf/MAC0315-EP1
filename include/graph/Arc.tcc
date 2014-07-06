@@ -32,22 +32,23 @@ namespace graph
         private:
             const Vertex *beg_ptr;
             const Vertex *end_ptr;
-        
-        public:
-            using vertex_type   = Vertex;
-            using property_type = Properties;
             
-            property_type properties {};
+        public:
+            typedef Vertex     vertex_type;
+            typedef Properties property_type;
+            
+            property_type properties;
             
             explicit
             Arc(const Vertex& beg, const Vertex& end, 
-                const property_type properties = {})
-                : beg_ptr{&beg}, end_ptr{&end}, 
+                const property_type properties = property_type{})
+                : beg_ptr{&beg}, end_ptr{&end},
                   properties{properties} {}
             
             const Vertex& beg() const { return *(this->beg_ptr); }
             const Vertex& end() const { return *(this->end_ptr); }
             
+            // Comparison operators
             bool operator==(const Arc& a) const
             {
                 return this->beg()      == a.beg()
