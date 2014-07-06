@@ -20,6 +20,7 @@
 
 // Libraries
 #include "graph/Vertex.tcc"
+#include "graph/Properties.tcc"
 
 namespace graph {
 namespace flow 

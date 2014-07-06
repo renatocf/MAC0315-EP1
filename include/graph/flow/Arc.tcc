@@ -24,6 +24,7 @@
 // Libraries
 #include "Vertex.tcc"
 #include "graph/Arc.tcc"
+#include "Properties.tcc"
 
 namespace graph {
 namespace flow

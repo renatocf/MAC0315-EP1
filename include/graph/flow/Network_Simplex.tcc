@@ -15,18 +15,25 @@
 /* and limitations under the License.                                 */
 /**********************************************************************/
 
-#ifndef TCC_GRAPH_TAGS_DEFINED
-#define TCC_GRAPH_TAGS_DEFINED
+#ifndef TCC_GRAPH_FLOW_NETWORK_SIMPLEX_DEFINED
+#define TCC_GRAPH_FLOW_NETWORK_SIMPLEX_DEFINED
 
-// Default libraries
-#include <iostream>
+#include "graph/flow/Arc.tcc"
+#include "graph/flow/Vertex.tcc"
+#include "graph/STree.tcc"
 
-namespace graph 
+namespace graph {
+namespace flow 
 {
-    // Directed properties
-    struct directed      {};
-    struct undirected    {};
-    struct bidirectional {};
-}
+    template<
+        typename Graph = graph::Adjacency_list
+            <directed,flow::Vertex<>::type,flow::Arc<>::type>,
+        typename STree
+    >
+    void network_simplex_algorithm(Graph G, STree initial)
+    {
+        
+    }
+}}
 
 #endif

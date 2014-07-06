@@ -19,7 +19,9 @@
 #define TCC_GRAPH_ARC_DEFINED
 
 // Libraries
+#include "Tags.tcc"
 #include "Vertex.tcc"
+#include "Properties.tcc"
 
 namespace graph 
 {

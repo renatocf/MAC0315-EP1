@@ -30,6 +30,7 @@
 #include "Arc.tcc"
 #include "Tags.tcc"
 #include "Vertex.tcc"
+#include "Functions.tcc"
 #include "Exception.tcc"
 
 namespace graph 
@@ -50,6 +51,8 @@ namespace graph
         <directed,Vertex,Arc,Vertex_list,Arc_list,AllocV,AllocA>
     {
         public:
+            typedef directed                            directed_type;
+            
             typedef Vertex                              vertex_type;
             typedef typename vertex_type::property_type vertex_property;
             typedef typename vertex_type::id_type       vertex_id;
@@ -59,15 +62,15 @@ namespace graph
             typedef typename arc_type::property_type    arc_property;
             typedef Arc_list<arc_type*,AllocA>          ArcList;
             
-        private:
+        protected:
             Vertex_list<vertex_type,AllocV>  vertices; // Vertices
             Arc_list<arc_type,AllocA>        arcs;     // Arcs
             
             Vertex_list< // Adjacency list
                 std::tuple<VertexList,ArcList>,AllocV
             > adj_list;
+        
         public:
-            
             Adjacency_list_gen(
                 Vertex_list<Vertex,AllocV>& vertices, 
                 Arc_list<Arc,AllocA>& arcs)
@@ -105,11 +108,20 @@ namespace graph
             { return this->adj_list[v.id].first; }
             
             std::pair<out_arcs_iterator,out_arcs_iterator>
-            out_arcs(const Vertex& v) 
+            out_arcs(const Vertex& v)
             {
                 return { std::begin (std::get<0>(this->adj_list[v.id])) ,
                          std::end   (std::get<0>(this->adj_list[v.id])) };
             }
+            
+            size_t num_vertices() { return this->vertices.size(); }
+            size_t num_arcs()     { return this->arcs.size();     }
+            
+            void add_vertex(const vertex_type& v) {}
+            void remove_vertex(const vertex_type& v) {}
+            
+            void add_arc(const arc_type& a) {}
+            void remove_arc(const arc_type& a) {}
     };
     
     template<
@@ -121,6 +133,8 @@ namespace graph
         <undirected,Vertex,Arc,Vertex_list,Arc_list,AllocV,AllocA>
     {
         public:
+            typedef undirected                          directed_type;
+            
             typedef Vertex                              vertex_type;
             typedef typename vertex_type::property_type vertex_property;
             typedef typename vertex_type::id_type       vertex_id;
@@ -206,6 +220,8 @@ namespace graph
         <bidirectional,Vertex,Arc,Vertex_list,Arc_list,AllocV,AllocA>
     {
         public:
+            typedef bidirectional                       directed_type;
+            
             typedef Vertex                              vertex_type;
             typedef typename vertex_type::property_type vertex_property;
             typedef typename vertex_type::id_type       vertex_id;
@@ -222,8 +238,8 @@ namespace graph
             Vertex_list< // Adjacency list
                 std::tuple<VertexList,VertexList,ArcList>,AllocV
             > adj_list;
-        public:
             
+        public:
             Adjacency_list_gen(
                 Vertex_list<Vertex,AllocV>& vertices, 
                 Arc_list<Arc,AllocA>& arcs)
@@ -251,7 +267,7 @@ namespace graph
                         &(this->vertices[arc.beg().id]));
                     
                     // Put a pointer to the arc
-                    this->adj_list[arc.beg().id].second.push_back(
+                    std::get<2>(this->adj_list[arc.beg().id]).push_back(
                         &(this->arcs.back()));
                 }
             }
@@ -298,14 +314,16 @@ namespace graph
         : public Adjacency_list_gen
             <Directed,Vertex,Arc,Vertex_list,Arc_list,AllocV,AllocA>
     {
-        private:
+        public:
             typedef Adjacency_list_gen
                 <Directed,Vertex,Arc,Vertex_list,Arc_list,AllocV,AllocA>
             Generator;
            
-        public:
+            typedef typename Generator::directed_type directed_type;
+            
             typedef Vertex vertex_type;
             typedef AllocV vertex_allocator;
+            // typedef Generator::VertexList vertex_list;
             
             typedef Arc    arc_type;
             typedef AllocA arc_allocator;
@@ -313,16 +331,13 @@ namespace graph
             typedef Arc_list<arc_type,arc_allocator>          arc_list;
             typedef Vertex_list<vertex_type,vertex_allocator> vertex_list;
              
-            Adjacency_list(vertex_list vertices = vertex_list{}, 
-                           arc_list arcs = arc_list{})
+            Adjacency_list(
+                vertex_list vertices = vertex_list{}, 
+                arc_list arcs = arc_list{})
                 : Generator{vertices,arcs} {}
             
-            typedef typename Generator::out_arcs_iterator 
-            out_arcs_iterator;
-            
-            inline std::pair<out_arcs_iterator,out_arcs_iterator>
-            out_arcs(const Vertex& v) 
-            { return Generator::out_arcs(v); }
+            size_t num_vertices () { return Generator::vertices.size(); }
+            size_t num_arcs     () { return Generator::arcs.size();     }
     };
 }
 

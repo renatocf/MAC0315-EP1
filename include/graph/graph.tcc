@@ -23,10 +23,13 @@
 #include "graph/Arc.tcc"
 #include "graph/Cycle.tcc"
 #include "graph/Exception.tcc"
+#include "graph/Functions.tcc"
+#include "graph/Properties.tcc"
 #include "graph/STree.tcc"
 #include "graph/Tags.tcc"
 #include "graph/Vertex.tcc"
 #include "graph/flow/Arc.tcc"
+#include "graph/flow/Network_Simplex.tcc"
 #include "graph/flow/Vertex.tcc"
 #include "graph/flow/flow.tcc"
 

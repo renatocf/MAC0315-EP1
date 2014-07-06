@@ -19,7 +19,7 @@
 #define TCC_GRAPH_VERTEX_DEFINED
 
 // Libraries
-#include "Tags.tcc"
+#include "Properties.tcc"
 
 namespace graph
 {

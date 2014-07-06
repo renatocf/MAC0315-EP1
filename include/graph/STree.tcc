@@ -21,6 +21,7 @@
 // Default libraries
 #include <vector>
 #include <utility>
+#include <iostream>
 #include <initializer_list>
 
 // Libraries
@@ -36,53 +37,96 @@ namespace graph
         typename Cycle  = graph::Cycle<Arc>
     >class STree
     {
+        public:
+            typedef Vertex                   vertex_type;
+            typedef Arc                      arc_type;
+            typedef typename Vertex::id_type vertex_id;
+            
         private:
-            std::vector<typename Vertex::id_type> parnt;
+            std::vector<vertex_id> parnt;
+            std::vector<int>       depth;
+            vertex_id              radix;
+            int                    max_depth;
             
         public:        
-            STree(size_t n_vertex, std::initializer_list<Arc> arcs)
-                : parnt{n_vertex}
+            STree(size_t num_vertices, vertex_id radix, 
+                  std::initializer_list<Arc> arcs)
+                : parnt(num_vertices), 
+                  depth(num_vertices,-1), 
+                  radix{}, max_depth{-1}
             {
                 for(const Arc& arc : arcs)
-                    parnt[arc.beg.id] = arc.end.id;
+                {
+                    if(depth[arc.beg().id] == -1
+                    && depth[arc.end().id] != -1)
+                    {
+                        radix = arc.beg().id;
+                        parnt[arc.beg().id] = arc.end().id;
+                        depth[arc.beg().id] = depth[arc.end().id]+1;
+                    }
+                    else if(depth[arc.beg().id] != -1
+                         && depth[arc.end().id] == -1)
+                    {
+                        parnt[arc.end().id] = arc.beg().id;
+                        depth[arc.end().id] = depth[arc.beg().id]+1;
+                    }
+                    else if(depth[arc.beg().id] == -1 
+                         && depth[arc.end().id] == -1)
+                    {
+                        parnt[arc.end().id] = arc.beg().id;
+                        depth[arc.beg().id] = 0;
+                        depth[arc.end().id] = 1;
+                    }
+                    for(int d : depth) 
+                        if(d > max_depth) max_depth = d;
+                }
             }
-            
-            typedef Vertex vertex_type;
-            typedef Arc    arc_type;
             
             Cycle fundamental_cycle(const Arc& inserted)
             {
                 Cycle cycle { inserted };
-                Vertex l    { inserted.beg }; 
-                Vertex r    { inserted.end };
-                int depth = inserted.beg.depth; 
+                vertex_id l { inserted.beg().id }; 
+                vertex_id r { inserted.end().id };
+                int depth = depth[inserted.beg()]; 
                 
-                if(inserted.end.depth > depth) 
-                    depth = inserted.beg.depth;
-                l = inserted.beg; r = inserted.end;
+                if(depth[inserted.end()] > depth) 
+                    depth = depth[inserted.beg()];
+                l = inserted.beg().id; r = inserted.end().id;
                 
                 // Intermediate arcs 
                 // (when with different depths)
-                for(Vertex lp = this->parent(l); l.depth != depth; l = lp)
+                for(vertex_id lp = parnt[l]; depth[l] != depth; l = lp)
                     cycle.push_back( Arc{lp,l} );
-                for(Vertex rp = this->parent(l); r.depth != depth; r = rp)
+                for(vertex_id rp = parnt[r]; depth[r] != depth; r = rp)
                     cycle.push_front( Arc{rp,r} );
                 
                 while(r != l)
                 {
-                    // Intermediate arcs 
+                    // Intermediate arcs
                     // (when with the same depth)
-                    Vertex lp = this->parent(l);
-                    Vertex rp = this->parent(r);
+                    vertex_id lp = parnt[l];
+                    vertex_id rp = parnt[r];
                     cycle.push_back ( Arc{lp,l} );
                     cycle.push_front( Arc{rp,r} );
                     r = rp; l = lp;
                 }
                 
                 // Last arc
-                cycle.push_back({this->parent(l),l});
+                cycle.push_back({parnt[l],l});
                 
                 return cycle;
+            }
+            
+            friend std::ostream& 
+            operator<<(std::ostream& os, const STree& st)
+            {
+                for(int i = 0; i <= st.max_depth; i++)
+                {
+                    for(int d : st.depth)
+                        if(d == i) os << d << " ";
+                    os << std::endl;
+                }
+                return os;
             }
     };
 }

@@ -15,18 +15,28 @@
 /* and limitations under the License.                                 */
 /**********************************************************************/
 
-#ifndef TCC_GRAPH_TAGS_DEFINED
-#define TCC_GRAPH_TAGS_DEFINED
+#ifndef TCC_GRAPH_PROPERTIES_DEFINED
+#define TCC_GRAPH_PROPERTIES_DEFINED
 
 // Default libraries
 #include <iostream>
 
 namespace graph 
 {
-    // Directed properties
-    struct directed      {};
-    struct undirected    {};
-    struct bidirectional {};
+    struct no_property
+    {
+        no_property() {}
+        no_property(const no_property& np) {}
+        
+        bool operator==(const no_property& p) const { return true; }
+        bool operator!=(const no_property& p) const { return false; }
+        
+        friend std::ostream& 
+        operator<<(std::ostream& os, const no_property& n)
+        {
+            os << "none"; return os;
+        }
+    };
 }
 
 #endif

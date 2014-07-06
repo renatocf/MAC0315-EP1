@@ -72,6 +72,7 @@ int main(int argc, char **argv)
     cout << endl << "Digraph" << endl;
     cout << "=======================" << endl;
     typedef graph::Adjacency_list<graph::directed,vertex,arc> digraph;
+    // typedef graph::Adjacency_list<graph::bidirectional,vertex,arc> digraph;
     
     vertex_list tr1_v;
     
@@ -92,10 +93,19 @@ int main(int argc, char **argv)
 
     digraph T { tr1_v, tr1_a };
     
-    auto it  = T.out_arcs(tr1_v[0]).first;
-    auto end = T.out_arcs(tr1_v[0]).second;
+    auto it  = out_arcs(tr1_v[0], T).first;
+    auto end = out_arcs(tr1_v[0], T).second;
     for(; it != end; it++)
-        cout << **it << endl;
+        cout << graph::vertex(*it,T) << endl;
+    
+    cout << endl << "Spanning Tree" << endl;
+    cout << "=======================" << endl;
+    typedef graph::STree<vertex,arc> stree;
+    
+    stree initial { T.num_vertices(), 
+                    0, {tr1_a[0], tr1_a[1], tr1_a[7], tr1_a[3]} };
+    
+    cout << initial << endl;
     
     return EXIT_SUCCESS;
 }
