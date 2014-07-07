@@ -24,22 +24,22 @@
 namespace graph
 {
     template<
-        typename Properties = no_property,
-        typename Id         = unsigned long
+        typename Properties = no_property
     >struct Vertex
     {
-        typedef Id         id_type;
-        typedef Properties property_type;
+        typedef unsigned long id_type;
+        typedef Properties    property_type;
         
-        Id id;
+        id_type       id;
         property_type properties;
         
         explicit
-        Vertex(const Id id, property_type properties = property_type{})
+        Vertex(const id_type id, 
+               property_type properties = property_type{})
             : id{id}, properties{properties} {}
         
         explicit
-        Vertex(const Id id, const Vertex& prototype)
+        Vertex(const id_type id, const Vertex& prototype)
             : id{id}, properties{prototype.properties} {}
         
         bool operator==(const Vertex& v) const

@@ -59,10 +59,9 @@ namespace flow
     };
     
     template<
-        typename Properties  = graph::no_property,
-        typename Id          = unsigned long
-    >struct Vertex 
-    { typedef graph::Vertex<Vertex_flow<Properties>,Id> type; };
+        typename Properties  = graph::no_property
+    >struct Vertex
+    { typedef graph::Vertex<Vertex_flow<Properties>> type; };
 }}
 
 #endif
