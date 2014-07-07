@@ -23,7 +23,6 @@
 #include "graph/Arc.tcc"
 #include "graph/Cycle.tcc"
 #include "graph/Exception.tcc"
-#include "graph/Functions.tcc"
 #include "graph/Properties.tcc"
 #include "graph/STree.tcc"
 #include "graph/Tags.tcc"
