@@ -458,11 +458,12 @@ namespace graph
                         for(auto& a : all_arcs())
                             std::cout << ">> " << a << std::endl;
                         std::cout << std::endl;
-                        remove_arc(
-                            arc(arcs_list(vid,*this).back(),*this).beg,
-                            arc(arcs_list(vid,*this).back(),*this).end,
-                            arc(arcs_list(vid,*this).back(),*this).properties,
-                            false
+                        
+                        arc_type *back =
+                        &(arc(arcs_list(vid,*this).back(),*this));
+                        
+                        this->remove_arc(
+                            back->beg,back->end,back->properties,false
                         );
                     }
                     std::get<0>(this->adj_list[vid]) = nullptr;
