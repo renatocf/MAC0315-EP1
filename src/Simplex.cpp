@@ -81,31 +81,69 @@ int main(int argc, char **argv)
         tr1_v.emplace_back(id++);
     
     arc_list tr1_a { 
-        arc{ tr1_v[0], tr1_v[1], {9 } },
-        arc{ tr1_v[0], tr1_v[3], {10} },
-        arc{ tr1_v[1], tr1_v[2], {7 } },
-        arc{ tr1_v[1], tr1_v[3], {4 } },
-        arc{ tr1_v[1], tr1_v[4], {5 } },
-        arc{ tr1_v[2], tr1_v[4], {9 } },
-        arc{ tr1_v[3], tr1_v[1], {4 } },
-        arc{ tr1_v[3], tr1_v[4], {9 } }
+        arc{ 0, 1, { 9} },
+        arc{ 0, 3, {10} },
+        arc{ 1, 2, { 7} },
+        arc{ 1, 3, { 4} },
+        arc{ 1, 4, { 5} },
+        arc{ 2, 4, { 9} },
+        arc{ 3, 1, { 4} },
+        arc{ 3, 4, { 9} }
     };
 
     digraph T { tr1_v, tr1_a };
     
-    auto it  = out_arcs(tr1_v[0], T).first;
-    auto end = out_arcs(tr1_v[0], T).second;
-    for(; it != end; it++)
-        cout << graph::vertex(*it,T) << endl;
+    for(auto& v : all_vertices(T))
+        cout << v << endl;
+    for(auto& a : all_arcs(T))
+        cout << a << endl;
+    cout << endl;
+    
+    graph::remove_vertex(0,T);
+    
+    for(auto& v : all_vertices(T))
+        cout << v << endl;
+    for(auto& a : all_arcs(T))
+        cout << a << endl;
+    cout << endl;
+    
+    // cout << "Adding 0->2" << endl;
+    // add_arc(arc{0,2},T);
+    //
+    // cout << "Before removing" << endl;
+    // for(auto& v : out_arcs_list(0,T))
+    //     cout << graph::vertex(v,T) << endl;
+    // for(auto& a : arcs_list(0,T))
+    //     cout << graph::arc(a,T) << endl;
+    //
+    // cout << "Removing 0->2" << endl;
+    // remove_arc(arc{0,2},T);
+    //
+    // cout << "Removing 0->1 with empty property" << endl;
+    // remove_arc(arc{0,1},T);
+    //
+    // cout << "After removing" << endl;
+    // for(auto& v : out_arcs_list(0,T))
+    //     cout << graph::vertex(v,T) << endl;
+    // for(auto& a : arcs_list(0,T))
+    //     cout << graph::arc(a,T) << endl;
+    //
+    // remove_arc(0,1,T);
+    //
+    // cout << "After removing" << endl;
+    // for(auto& v : out_arcs_list(0,T))
+    //     cout << graph::vertex(v,T) << endl;
+    // for(auto& a : arcs_list(0,T))
+    //     cout << graph::arc(a,T) << endl;
     
     cout << endl << "Spanning Tree" << endl;
     cout << "=======================" << endl;
     typedef graph::STree<vertex,arc> stree;
     
-    stree initial { T.num_vertices(), 
-                    0, {tr1_a[0], tr1_a[1], tr1_a[7], tr1_a[3]} };
+    // stree initial { T.num_vertices(), 
+                    // 0, {tr1_a[0], tr1_a[1], tr1_a[7], tr1_a[3]} };
     
-    cout << initial << endl;
+    // cout << initial << endl;
     
     return EXIT_SUCCESS;
 }
