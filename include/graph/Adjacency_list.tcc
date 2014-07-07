@@ -68,12 +68,21 @@ namespace graph
             typedef typename adj_traits::vertex_id_list  vertex_id_list;
             typedef typename adj_traits::vertex_property vertex_property;
             
+            typedef typename adj_traits::arc_id          arc_id;
             typedef typename adj_traits::arc_type        arc_type;
             typedef typename adj_traits::arc_list        arc_list;
             typedef typename adj_traits::arc_id_list     arc_id_list;
             typedef typename adj_traits::arc_property    arc_property;
         
         protected:
+            // List iterators
+            typedef typename arc_id_list::iterator       arc_iterator;
+            typedef typename vertex_id_list::iterator    out_iterator;
+            typedef void                                 in_iterator;
+            typedef std::pair<arc_iterator,arc_iterator> arc_iterator_pair;
+            typedef std::pair<out_iterator,out_iterator> out_iterator_pair;
+            typedef void                                 in_iterator_pair;
+            
             typedef std::tuple<vertex_type*,arc_id_list,vertex_id_list>
                     vertex_map;
             
@@ -81,6 +90,7 @@ namespace graph
                 Vertex_list,vertex_map
             >::type type;
             
+        public:
             void add_arc(const arc_type& arc)
             {
                 std::cout << "Inserting " << arc << std::endl;
@@ -91,31 +101,52 @@ namespace graph
                 // Create a copy of the arc with internal references
                 self.arcs.push_back(arc);
                 
-                // Increase beg's list of arcs
-                arcs_list(arc.beg,self).push_back(self.arcs.back().id);
-                
                 // Put a pointer in the list of out neighbors
                 out_arcs_list(arc.beg,self).push_back(arc.end);
+                
+                // Increase beg's list of arcs
+                arcs_list(arc.beg,self).push_back(self.arcs.back().id);
             }
             
-            
-            typedef typename vertex_id_list::iterator out_iterator;
-            typedef void in_iterator;
-            
-            typedef std::pair<out_iterator,out_iterator> out_iterator_pair;
-            typedef void in_iterator_pair;
-            
-            // out_iterator_pair out_arcs(vertex_id& vid)
-            // {
-            //     return { std::begin (out_arcs_list(vid,self)) ,
-            //              std::end   (out_arcs_list(vid,self)) };
-            // }
-            
-            // void add_vertex(const vertex_type& v) {}
-            // void remove_vertex(const vertex_type& v) {}
-            //
-            // void add_arc(const arc_type& a) {}
-            // void remove_arc(const arc_type& a) {}
+            void remove_arc(vertex_id beg, vertex_id end,
+                            arc_property prop, bool ignore_prop)
+            {
+                // Throws if any vertex does not exist
+                vertex(beg,self); vertex(end,self);
+                
+                bool has_arc = false;
+                
+                // Remove from beg's list of arcs
+                arc_iterator arc_beg, arc_end;
+                std::tie(arc_beg, arc_end) = arcs(beg,self);
+                for(auto it = arc_beg; it != arc_end; ++it)
+                    if(arc(*it,self).beg == beg
+                    && arc(*it,self).end == end
+                    && (ignore_prop || arc(*it,self).properties == prop))
+                    {
+                        arcs_list(beg,self).erase(it,it+1);
+                        has_arc = true;
+                    }
+                
+                // Does not have the arc, nothing to do
+                if(!has_arc) return;
+                
+                // Remove ids of neighbors
+                out_iterator out_beg, out_end;
+                std::tie(out_beg, out_end) = out_arcs(beg,self);
+                for(auto it = out_beg; it != out_end; ++it)
+                    if(*it == end)
+                        out_arcs_list(beg,self).erase(it,it+1);
+                
+                // Remove the arc stored in the graph
+                typename arc_list::iterator 
+                all_arcs_beg = std::begin (all_arcs(self)),
+                all_arcs_end = std::end   (all_arcs(self));
+                for(auto it = all_arcs_beg; it != all_arcs_end; ++it)
+                    if(it->beg == beg && it->end == end
+                    && (ignore_prop || it->properties == prop))
+                        all_arcs(self).erase(it,it+1);
+            }
     };
     
     template<
@@ -134,12 +165,21 @@ namespace graph
             typedef typename adj_traits::vertex_id_list  vertex_id_list;
             typedef typename adj_traits::vertex_property vertex_property;
             
+            typedef typename adj_traits::arc_id          arc_id;
             typedef typename adj_traits::arc_type        arc_type;
             typedef typename adj_traits::arc_list        arc_list;
             typedef typename adj_traits::arc_id_list     arc_id_list;
             typedef typename adj_traits::arc_property    arc_property;
-        
+             
         protected:
+            // List iterators
+            typedef typename arc_id_list::iterator       arc_iterator;
+            typedef typename vertex_id_list::iterator    out_iterator;
+            typedef out_iterator                         in_iterator;
+            typedef std::pair<arc_iterator,arc_iterator> arc_iterator_pair;
+            typedef std::pair<out_iterator,out_iterator> out_iterator_pair;
+            typedef out_iterator_pair                    in_iterator_pair;
+            
             typedef std::tuple<vertex_type*,arc_id_list,vertex_id_list>
                     vertex_map;
             
@@ -155,30 +195,62 @@ namespace graph
                 // Create a copy of the arc with internal references
                 self.arcs.push_back(arc);
                 
+                // Put a pointer in the list of out neighbors
+                out_arcs_list(arc.beg,self).push_back(arc.end);
+                
                 // Increase beg's and end's list of arcs
                 arcs_list(arc.beg,self).push_back(self.arcs.back().id);
                 arcs_list(arc.end,self).push_back(self.arcs.back().id);
+            }
+            
+            void remove_arc(vertex_id beg, vertex_id end,
+                            arc_property prop, bool ignore_prop)
+            {
+                // Throws if any vertex does not exist
+                vertex(beg,self); vertex(end,self);
                 
-                // Put a pointer in the list of out neighbors
-                out_arcs_list(arc.beg,self).push_back(arc.end);
-            }
-            
-            typedef typename vertex_id_list::iterator out_iterator;
-            typedef typename vertex_id_list::iterator in_iterator;
-            
-            typedef std::pair<out_iterator,out_iterator> out_iterator_pair;
-            typedef std::pair<out_iterator,out_iterator> in_iterator_pair;
-            
-            out_iterator_pair out_arcs(const vertex_id& vid)
-            {
-                return { std::begin (out_arcs_list(vid,self)) ,
-                         std::end   (out_arcs_list(vid,self)) };
-            }
-            
-            in_iterator_pair in_arcs(const vertex_id& vid)
-            {
-                return { std::begin (in_arcs_list(vid,self)) ,
-                         std::end   (in_arcs_list(vid,self)) };
+                bool has_arc = false;
+                
+                // Remove from beg's and end's list of arcs
+                arc_iterator arc_beg, arc_end;
+                std::tie(arc_beg, arc_end) = arcs(beg,self);
+                for(auto it = arc_beg; it != arc_end; ++it)
+                    if(arc(*it,self).beg == beg
+                    && arc(*it,self).end == end
+                    && (ignore_prop || arc(*it,self).properties == prop))
+                    {
+                        arcs_list(beg,self).erase(it,it+1);
+                        has_arc = true;
+                    }
+                
+                std::tie(arc_beg, arc_end) = arcs(end,self);
+                for(auto it = arc_beg; it != arc_end; ++it)
+                    if(arc(*it,self).beg == beg
+                    && arc(*it,self).end == end
+                    && (ignore_prop || arc(*it,self).properties == prop))
+                    {
+                        arcs_list(end,self).erase(it,it+1);
+                        has_arc = true;
+                    }
+                
+                // Does not have the arc, nothing to do
+                if(!has_arc) return;
+                
+                // Remove ids of neighbors
+                out_iterator out_beg, out_end;
+                std::tie(out_beg, out_end) = out_arcs(beg,self);
+                for(auto it = out_beg; it != out_end; ++it)
+                    if(*it == end)
+                        out_arcs_list(beg,self).erase(it,it+1);
+                
+                // Remove the arc stored in the graph
+                typename arc_list::iterator 
+                all_arcs_beg = std::begin (all_arcs(self)),
+                all_arcs_end = std::end   (all_arcs(self));
+                for(auto it = all_arcs_beg; it != all_arcs_end; ++it)
+                    if(it->beg == beg && it->end == end
+                    && (ignore_prop || it->properties == prop))
+                        all_arcs(self).erase(it,it+1);
             }
     };
     
@@ -198,6 +270,7 @@ namespace graph
             typedef typename adj_traits::vertex_id_list  vertex_id_list;
             typedef typename adj_traits::vertex_property vertex_property;
             
+            typedef typename adj_traits::arc_id          arc_id;
             typedef typename adj_traits::arc_type        arc_type;
             typedef typename adj_traits::arc_list        arc_list;
             typedef typename adj_traits::arc_id_list     arc_id_list;
@@ -205,10 +278,12 @@ namespace graph
         
         protected:
             // List iterators
-            typedef typename vertex_id_list::iterator out_iterator;
-            typedef typename vertex_id_list::iterator in_iterator;
+            typedef typename arc_id_list::iterator       arc_iterator;
+            typedef typename vertex_id_list::iterator    out_iterator;
+            typedef typename vertex_id_list::iterator    in_iterator;
+            typedef std::pair<arc_iterator,arc_iterator> arc_iterator_pair;
             typedef std::pair<out_iterator,out_iterator> out_iterator_pair;
-            typedef std::pair<out_iterator,out_iterator> in_iterator_pair;
+            typedef std::pair<in_iterator,in_iterator>   in_iterator_pair;
             
             // Adjacency list type
             typedef std::tuple<vertex_type*,arc_id_list,
@@ -216,7 +291,8 @@ namespace graph
             
             typedef typename 
             container_gen<Vertex_list,vertex_map>::type type;
-            
+        
+        public:
             void add_arc(const arc_type& arc)
             {
                 // Throws if any vertex does not exist
@@ -225,30 +301,69 @@ namespace graph
                 // Create a copy of the arc with internal references
                 self.arcs.push_back(arc);
                 
-                // Increase beg's and end's list of arcs
-                arcs_list(arc.beg,self).push_back(self.arcs.back().id);
-                arcs_list(arc.end,self).push_back(self.arcs.back().id);
-                
                 // Put a pointer in the list of out neighbors
                 out_arcs_list(arc.beg,self).push_back(arc.end);
                 in_arcs_list (arc.end,self).push_back(arc.beg);
+                
+                // Increase beg's and end's list of arcs
+                arcs_list(arc.beg,self).push_back(self.arcs.back().id);
+                arcs_list(arc.end,self).push_back(self.arcs.back().id);
             }
             
-            void remove_arc(const arc_type& arc)
+            void remove_arc(vertex_id beg, vertex_id end,
+                            arc_property prop, bool ignore_prop)
             {
                 // Throws if any vertex does not exist
-                vertex(arc.beg,self); vertex(arc.end,self);
-
-                // Create a copy of the arc with internal references
-                // self.arcs.push_back(arc);
-                //
-                // // Increase beg's and end's list of arcs
-                // arcs_list(arc.beg,self).push_back(&(self.arcs.back()));
-                // arcs_list(arc.end,self).push_back(&(self.arcs.back()));
-                //
-                // // Put a pointer in the list of out neighbors
-                // out_arcs_list(arc.beg,self).push_back(arc.end);
-                // in_arcs_list (arc.end,self).push_back(arc.beg);
+                vertex(beg,self); vertex(end,self);
+                
+                bool has_arc = false;
+                
+                // Remove from beg's and end's list of arcs
+                arc_iterator arc_beg, arc_end;
+                std::tie(arc_beg, arc_end) = arcs(beg,self);
+                for(auto it = arc_beg; it != arc_end; ++it)
+                    if(arc(*it,self).beg == beg
+                    && arc(*it,self).end == end
+                    && (ignore_prop || arc(*it,self).properties == prop))
+                    {
+                        arcs_list(beg,self).erase(it,it+1);
+                        has_arc = true;
+                    }
+                
+                std::tie(arc_beg, arc_end) = arcs(end,self);
+                for(auto it = arc_beg; it != arc_end; ++it)
+                    if(arc(*it,self).beg == beg
+                    && arc(*it,self).end == end
+                    && (ignore_prop || arc(*it,self).properties == prop))
+                    {
+                        arcs_list(end,self).erase(it,it+1);
+                        has_arc = true;
+                    }
+                
+                // Does not have the arc, nothing to do
+                if(!has_arc) return;
+                
+                // Remove ids of neighbors
+                out_iterator out_beg, out_end;
+                std::tie(out_beg, out_end) = out_arcs(beg,self);
+                for(auto it = out_beg; it != out_end; ++it)
+                    if(*it == end)
+                        out_arcs_list(beg,self).erase(it,it+1);
+                
+                in_iterator in_beg, in_end;
+                std::tie(in_beg, in_end) = in_arcs(end,self);
+                for(auto it = in_beg; it != in_end; ++it)
+                    if(*it == beg)
+                        in_arcs_list(end,self).erase(it,it+1);
+                
+                // Remove the arc stored in the graph
+                typename arc_list::iterator 
+                all_arcs_beg = std::begin (all_arcs(self)),
+                all_arcs_end = std::end   (all_arcs(self));
+                for(auto it = all_arcs_beg; it != all_arcs_end; ++it)
+                    if(it->beg == beg && it->end == end
+                    && (ignore_prop || it->properties == prop))
+                        all_arcs(self).erase(it,it+1);
             }
     };
     
@@ -289,6 +404,8 @@ namespace graph
             typedef typename Gen::in_iterator_pair  in_iterator_pair;
             typedef typename Gen::out_iterator      out_iterator;
             typedef typename Gen::out_iterator_pair out_iterator_pair;
+            typedef typename Gen::arc_iterator      arc_iterator;
+            typedef typename Gen::arc_iterator_pair arc_iterator_pair;
         
         private:
             vertex_list vertices; arc_list arcs;
@@ -316,9 +433,30 @@ namespace graph
                 std::get<0>(this->adj_list[v.id]) = &(this->vertices[v.id]);
             }
             
-            void remove_vertex(const vertex_id& vid)
+            void remove_vertex(vertex_id vid, vertex_property prop, 
+                               bool ignore_prop)
             {
-                // this->vertices[vid] = nullptr;
+                vertex(vid,*this); // To check if id exists
+                if(ignore_prop || vertex(vid,*this).properties == prop)
+                {
+                    while(arcs_list(vid,*this).size() != 0)
+                    {
+                        // std::cout << ">>"
+                                  // << arc(arcs_list(vid,*this).back(),*this)
+                                  // << std::endl;
+                        for(auto& a : all_arcs())
+                            std::cout << ">> " << a << std::endl;
+                        std::cout << std::endl;
+                        remove_arc(
+                            arc(arcs_list(vid,*this).back(),*this),*this
+                        );
+                    }
+                    std::get<0>(this->adj_list[vid]) = nullptr;
+                    for(auto it = std::begin(this->vertices);
+                        it != std::end(this->vertices); ++it)
+                        if(it->id == vid)
+                            this->vertices.erase(it,it+1);
+                }
             }
             
             inline vertex_list& 
@@ -328,10 +466,10 @@ namespace graph
             all_vertices() const { return this->vertices; }
             
             inline arc_list& 
-            all_arcs() { return this->vertices; }
+            all_arcs() { return this->arcs; }
             
             inline const arc_list& 
-            all_arcs() const { return this->vertices; }
+            all_arcs() const { return this->arcs; }
             
             size_t num_vertices () { return vertices.size(); }
             size_t num_arcs     () { return arcs.size();     }
@@ -367,12 +505,35 @@ namespace graph
 #define ADJ_LIST Adjacency_list<D,V,A,VL,AL>
         
         template<ADJ_TEMPL>
-            void add_vertex(typename ADJ_LIST::vertex_type v, ADJ_LIST& g) 
+            inline void 
+            add_vertex(typename ADJ_LIST::vertex_type v, ADJ_LIST& g) 
             { g.add_vertex(v); }
         
         template<ADJ_TEMPL>
-            void add_arc(typename ADJ_LIST::arc_type a, ADJ_LIST& g) 
+            inline void 
+            remove_vertex(typename ADJ_LIST::vertex_type v, ADJ_LIST& g) 
+            { g.remove_vertex(v.vid,v.properties,false); }
+        
+        template<ADJ_TEMPL>
+            inline void 
+            remove_vertex(typename ADJ_LIST::vertex_id vid, ADJ_LIST& g) 
+            { g.remove_vertex(vid,{},true); }
+        
+        template<ADJ_TEMPL>
+            inline void 
+            add_arc(typename ADJ_LIST::arc_type a, ADJ_LIST& g) 
             { g.add_arc(a); }
+        
+        template<ADJ_TEMPL>
+            inline void 
+            remove_arc(typename ADJ_LIST::arc_type a, ADJ_LIST& g) 
+            { g.remove_arc(a.beg,a.end,a.properties,false); }
+        
+        template<ADJ_TEMPL>
+            inline void 
+            remove_arc(typename ADJ_LIST::vertex_id beg, 
+                       typename ADJ_LIST::vertex_id end, ADJ_LIST& g) 
+            { g.remove_arc(beg,end,{},true); }
         
         // All vertices
         template<ADJ_TEMPL>
@@ -419,17 +580,41 @@ namespace graph
             inline const typename ADJ_LIST::arc_type& arc
             (typename ADJ_LIST::arc_id aid, const ADJ_LIST& g)
             { return *aid; }
-
-        // Arc list
+        
+        // Arcs list
+        template<ADJ_TEMPL>
+            inline typename ADJ_LIST::arc_iterator_pair
+            arcs(const typename ADJ_LIST::vertex_id& vid, ADJ_LIST& g)
+            {
+                static_assert(
+                    !std::is_void<typename ADJ_LIST::arc_iterator_pair>(),
+                    "Adjacency list type does not support out arcs list"
+                );
+                return { std::begin (arcs_list(vid,g)) ,
+                         std::end   (arcs_list(vid,g)) };
+            }
+            
         template<ADJ_TEMPL>
             inline typename ADJ_LIST::arc_id_list& arcs_list
             (typename ADJ_LIST::vertex_id vid, ADJ_LIST& g) 
-            { return std::get<1>(g[vid]); }
+            { 
+                static_assert(
+                    !std::is_void<typename ADJ_LIST::arc_iterator_pair>(),
+                    "Adjacency list type does not support out arcs list"
+                );
+                return std::get<1>(g[vid]); 
+            }
 
         template<ADJ_TEMPL>
             inline const typename ADJ_LIST::arc_id_list& arcs_list
             (typename ADJ_LIST::vertex_id vid, const ADJ_LIST& g)
-            { return std::get<1>(g[vid]); }
+            { 
+                static_assert(
+                    !std::is_void<typename ADJ_LIST::arc_iterator_pair>(),
+                    "Adjacency list type does not support out arcs list"
+                );
+                return std::get<1>(g[vid]); 
+            }
 
         // Out arcs
         template<ADJ_TEMPL>
