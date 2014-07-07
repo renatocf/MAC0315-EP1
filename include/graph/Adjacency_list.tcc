@@ -59,7 +59,7 @@ namespace graph
         <Adjacency_list,directed,Vertex,Arc,Vertex_list,Arc_list>
     {
         private:
-            Adjacency_list& self;
+            Adjacency_list *self;
             
             typedef Adjacency_list_traits<Adjacency_list> adj_traits;
             typedef typename adj_traits::vertex_id       vertex_id;
@@ -76,7 +76,7 @@ namespace graph
         
         protected:
             Adjacency_list_gen() 
-                : self{static_cast<Adjacency_list&>(*this)} {}
+                : self(static_cast<Adjacency_list*>(this)) {}
             
             // List iterators
             typedef typename arc_id_list::iterator       arc_iterator;
@@ -99,35 +99,36 @@ namespace graph
                 std::cout << "Inserting " << arc << std::endl;
                 
                 // Throws if any vertex does not exist
-                vertex(arc.beg,self); vertex(arc.end,self);
+                vertex(arc.beg,*self); vertex(arc.end,*self);
                 
                 // Create a copy of the arc with internal references
-                self.arcs.push_back(arc);
+                all_arcs(*self).push_back(arc);
                 
                 // Put a pointer in the list of out neighbors
-                out_arcs_list(arc.beg,self).push_back(arc.end);
+                out_arcs_list(arc.beg,*self).push_back(arc.end);
                 
                 // Increase beg's list of arcs
-                arcs_list(arc.beg,self).push_back(self.arcs.back().id);
+                arcs_list(arc.beg,*self).push_back(
+                                            all_arcs(*self).back().id);
             }
             
             void remove_arc(vertex_id beg, vertex_id end,
                             arc_property prop, bool ignore_prop)
             {
                 // Throws if any vertex does not exist
-                vertex(beg,self); vertex(end,self);
+                vertex(beg,*self); vertex(end,*self);
                 
                 bool has_arc = false;
                 
                 // Remove from beg's list of arcs
                 arc_iterator arc_beg, arc_end;
-                std::tie(arc_beg, arc_end) = arcs(beg,self);
+                std::tie(arc_beg, arc_end) = arcs(beg,*self);
                 for(auto it = arc_beg; it != arc_end; ++it)
-                    if(arc(*it,self).beg == beg
-                    && arc(*it,self).end == end
-                    && (ignore_prop || arc(*it,self).properties == prop))
+                    if(arc(*it,*self).beg == beg
+                    && arc(*it,*self).end == end
+                    && (ignore_prop || arc(*it,*self).properties == prop))
                     {
-                        arcs_list(beg,self).erase(it,it+1);
+                        arcs_list(beg,*self).erase(it,it+1);
                         has_arc = true;
                     }
                 
@@ -136,19 +137,19 @@ namespace graph
                 
                 // Remove ids of neighbors
                 out_iterator out_beg, out_end;
-                std::tie(out_beg, out_end) = out_arcs(beg,self);
+                std::tie(out_beg, out_end) = out_arcs(beg,*self);
                 for(auto it = out_beg; it != out_end; ++it)
                     if(*it == end)
-                        out_arcs_list(beg,self).erase(it,it+1);
+                        out_arcs_list(beg,*self).erase(it,it+1);
                 
                 // Remove the arc stored in the graph
                 typename arc_list::iterator 
-                all_arcs_beg = std::begin (all_arcs(self)),
-                all_arcs_end = std::end   (all_arcs(self));
+                all_arcs_beg = std::begin (all_arcs(*self)),
+                all_arcs_end = std::end   (all_arcs(*self));
                 for(auto it = all_arcs_beg; it != all_arcs_end; ++it)
                     if(it->beg == beg && it->end == end
                     && (ignore_prop || it->properties == prop))
-                        all_arcs(self).erase(it,it+1);
+                        all_arcs(*self).erase(it,it+1);
             }
     };
     
@@ -159,7 +160,7 @@ namespace graph
         <Adjacency_list,undirected,Vertex,Arc,Vertex_list,Arc_list>
     {
         private:
-            Adjacency_list& self;
+            Adjacency_list *self;
             
             typedef Adjacency_list_traits<Adjacency_list> adj_traits;
             typedef typename adj_traits::vertex_id       vertex_id;
@@ -176,7 +177,7 @@ namespace graph
              
         protected:
             Adjacency_list_gen() 
-                : self{static_cast<Adjacency_list&>(*this)} {}
+                : self{static_cast<Adjacency_list*>(this)} {}
             
             // List iterators
             typedef typename arc_id_list::iterator       arc_iterator;
@@ -196,46 +197,48 @@ namespace graph
             void add_arc(const Arc& arc)
             {
                 // Throws if any vertex does not exist
-                vertex(arc.beg,self); vertex(arc.end,self);
+                vertex(arc.beg,*self); vertex(arc.end,*self);
                 
                 // Create a copy of the arc with internal references
-                self.arcs.push_back(arc);
+                all_arcs(*self).push_back(arc);
                 
                 // Put a pointer in the list of out neighbors
-                out_arcs_list(arc.beg,self).push_back(arc.end);
+                out_arcs_list(arc.beg,*self).push_back(arc.end);
                 
                 // Increase beg's and end's list of arcs
-                arcs_list(arc.beg,self).push_back(self.arcs.back().id);
-                arcs_list(arc.end,self).push_back(self.arcs.back().id);
+                arcs_list(arc.beg,*self).push_back(
+                                            all_arcs(*self).back().id);
+                arcs_list(arc.end,*self).push_back(
+                                            all_arcs(*self).back().id);
             }
             
             void remove_arc(vertex_id beg, vertex_id end,
                             arc_property prop, bool ignore_prop)
             {
                 // Throws if any vertex does not exist
-                vertex(beg,self); vertex(end,self);
+                vertex(beg,*self); vertex(end,*self);
                 
                 bool has_arc = false;
                 
                 // Remove from beg's and end's list of arcs
                 arc_iterator arc_beg, arc_end;
-                std::tie(arc_beg, arc_end) = arcs(beg,self);
+                std::tie(arc_beg, arc_end) = arcs(beg,*self);
                 for(auto it = arc_beg; it != arc_end; ++it)
-                    if(arc(*it,self).beg == beg
-                    && arc(*it,self).end == end
-                    && (ignore_prop || arc(*it,self).properties == prop))
+                    if(arc(*it,*self).beg == beg
+                    && arc(*it,*self).end == end
+                    && (ignore_prop || arc(*it,*self).properties == prop))
                     {
-                        arcs_list(beg,self).erase(it,it+1);
+                        arcs_list(beg,*self).erase(it,it+1);
                         has_arc = true;
                     }
                 
-                std::tie(arc_beg, arc_end) = arcs(end,self);
+                std::tie(arc_beg, arc_end) = arcs(end,*self);
                 for(auto it = arc_beg; it != arc_end; ++it)
-                    if(arc(*it,self).beg == beg
-                    && arc(*it,self).end == end
-                    && (ignore_prop || arc(*it,self).properties == prop))
+                    if(arc(*it,*self).beg == beg
+                    && arc(*it,*self).end == end
+                    && (ignore_prop || arc(*it,*self).properties == prop))
                     {
-                        arcs_list(end,self).erase(it,it+1);
+                        arcs_list(end,*self).erase(it,it+1);
                         has_arc = true;
                     }
                 
@@ -244,19 +247,19 @@ namespace graph
                 
                 // Remove ids of neighbors
                 out_iterator out_beg, out_end;
-                std::tie(out_beg, out_end) = out_arcs(beg,self);
+                std::tie(out_beg, out_end) = out_arcs(beg,*self);
                 for(auto it = out_beg; it != out_end; ++it)
                     if(*it == end)
-                        out_arcs_list(beg,self).erase(it,it+1);
+                        out_arcs_list(beg,*self).erase(it,it+1);
                 
                 // Remove the arc stored in the graph
                 typename arc_list::iterator 
-                all_arcs_beg = std::begin (all_arcs(self)),
-                all_arcs_end = std::end   (all_arcs(self));
+                all_arcs_beg = std::begin (all_arcs(*self)),
+                all_arcs_end = std::end   (all_arcs(*self));
                 for(auto it = all_arcs_beg; it != all_arcs_end; ++it)
                     if(it->beg == beg && it->end == end
                     && (ignore_prop || it->properties == prop))
-                        all_arcs(self).erase(it,it+1);
+                        all_arcs(*self).erase(it,it+1);
             }
     };
     
@@ -267,7 +270,7 @@ namespace graph
         <Adjacency_list,bidirectional,Vertex,Arc,Vertex_list,Arc_list>
     {
         private:
-            Adjacency_list& self;
+            Adjacency_list *self;
             
             typedef Adjacency_list_traits<Adjacency_list> adj_traits;
             typedef typename adj_traits::vertex_id       vertex_id;
@@ -284,7 +287,7 @@ namespace graph
         
         protected:
             Adjacency_list_gen() 
-                : self{static_cast<Adjacency_list&>(*this)} {}
+                : self{static_cast<Adjacency_list*>(this)} {}
             
             // List iterators
             typedef typename arc_id_list::iterator       arc_iterator;
@@ -305,47 +308,49 @@ namespace graph
             void add_arc(const arc_type& arc)
             {
                 // Throws if any vertex does not exist
-                vertex(arc.beg,self); vertex(arc.end,self);
+                vertex(arc.beg,*self); vertex(arc.end,*self);
                 
                 // Create a copy of the arc with internal references
-                self.arcs.push_back(arc);
+                all_arcs(*self).push_back(arc);
                 
                 // Put a pointer in the list of out neighbors
-                out_arcs_list(arc.beg,self).push_back(arc.end);
-                in_arcs_list (arc.end,self).push_back(arc.beg);
+                out_arcs_list(arc.beg,*self).push_back(arc.end);
+                in_arcs_list (arc.end,*self).push_back(arc.beg);
                 
                 // Increase beg's and end's list of arcs
-                arcs_list(arc.beg,self).push_back(self.arcs.back().id);
-                arcs_list(arc.end,self).push_back(self.arcs.back().id);
+                arcs_list(arc.beg,*self).push_back(
+                                            all_arcs(*self).back().id);
+                arcs_list(arc.end,*self).push_back(
+                                            all_arcs(*self).back().id);
             }
             
             void remove_arc(vertex_id beg, vertex_id end,
                             arc_property prop, bool ignore_prop)
             {
                 // Throws if any vertex does not exist
-                vertex(beg,self); vertex(end,self);
+                vertex(beg,*self); vertex(end,*self);
                 
                 bool has_arc = false;
                 
                 // Remove from beg's and end's list of arcs
                 arc_iterator arc_beg, arc_end;
-                std::tie(arc_beg, arc_end) = arcs(beg,self);
+                std::tie(arc_beg, arc_end) = arcs(beg,*self);
                 for(auto it = arc_beg; it != arc_end; ++it)
-                    if(arc(*it,self).beg == beg
-                    && arc(*it,self).end == end
-                    && (ignore_prop || arc(*it,self).properties == prop))
+                    if(arc(*it,*self).beg == beg
+                    && arc(*it,*self).end == end
+                    && (ignore_prop || arc(*it,*self).properties == prop))
                     {
-                        arcs_list(beg,self).erase(it,it+1);
+                        arcs_list(beg,*self).erase(it,it+1);
                         has_arc = true;
                     }
                 
-                std::tie(arc_beg, arc_end) = arcs(end,self);
+                std::tie(arc_beg, arc_end) = arcs(end,*self);
                 for(auto it = arc_beg; it != arc_end; ++it)
-                    if(arc(*it,self).beg == beg
-                    && arc(*it,self).end == end
-                    && (ignore_prop || arc(*it,self).properties == prop))
+                    if(arc(*it,*self).beg == beg
+                    && arc(*it,*self).end == end
+                    && (ignore_prop || arc(*it,*self).properties == prop))
                     {
-                        arcs_list(end,self).erase(it,it+1);
+                        arcs_list(end,*self).erase(it,it+1);
                         has_arc = true;
                     }
                 
@@ -354,25 +359,25 @@ namespace graph
                 
                 // Remove ids of neighbors
                 out_iterator out_beg, out_end;
-                std::tie(out_beg, out_end) = out_arcs(beg,self);
+                std::tie(out_beg, out_end) = out_arcs(beg,*self);
                 for(auto it = out_beg; it != out_end; ++it)
                     if(*it == end)
-                        out_arcs_list(beg,self).erase(it,it+1);
+                        out_arcs_list(beg,*self).erase(it,it+1);
                 
                 in_iterator in_beg, in_end;
-                std::tie(in_beg, in_end) = in_arcs(end,self);
+                std::tie(in_beg, in_end) = in_arcs(end,*self);
                 for(auto it = in_beg; it != in_end; ++it)
                     if(*it == beg)
-                        in_arcs_list(end,self).erase(it,it+1);
+                        in_arcs_list(end,*self).erase(it,it+1);
                 
                 // Remove the arc stored in the graph
                 typename arc_list::iterator 
-                all_arcs_beg = std::begin (all_arcs(self)),
-                all_arcs_end = std::end   (all_arcs(self));
+                all_arcs_beg = std::begin (all_arcs(*self)),
+                all_arcs_end = std::end   (all_arcs(*self));
                 for(auto it = all_arcs_beg; it != all_arcs_end; ++it)
                     if(it->beg == beg && it->end == end
                     && (ignore_prop || it->properties == prop))
-                        all_arcs(self).erase(it,it+1);
+                        all_arcs(*self).erase(it,it+1);
             }
     };
     
@@ -450,14 +455,14 @@ namespace graph
                 {
                     while(arcs_list(vid,*this).size() != 0)
                     {
-                        // std::cout << ">>"
-                                  // << arc(arcs_list(vid,*this).back(),*this)
-                                  // << std::endl;
                         for(auto& a : all_arcs())
                             std::cout << ">> " << a << std::endl;
                         std::cout << std::endl;
                         remove_arc(
-                            arc(arcs_list(vid,*this).back(),*this),*this
+                            arc(arcs_list(vid,*this).back(),*this).beg,
+                            arc(arcs_list(vid,*this).back(),*this).end,
+                            arc(arcs_list(vid,*this).back(),*this).properties,
+                            false
                         );
                     }
                     std::get<0>(this->adj_list[vid]) = nullptr;
