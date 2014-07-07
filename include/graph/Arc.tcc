@@ -38,9 +38,9 @@ namespace graph
             typedef typename vertex_type::id_type vertex_id;
             
             const id_type   id;
-            const vertex_id beg;
-            const vertex_id end;
-            property_type properties;
+            vertex_id       beg;
+            vertex_id       end;
+            property_type   properties;
             
             explicit
             Arc(const vertex_type& beg, const vertex_type& end, 
@@ -61,6 +61,21 @@ namespace graph
             Arc(const Arc&& p)
                 : id{this}, beg{std::move(p.beg)}, end{std::move(p.end)},
                   properties{std::move(p.properties)} {}
+            
+            Arc& operator=(const Arc& copied)
+            {
+                this->beg = copied.beg; this->end = copied.end;
+                this->properties = std::move(copied.properties);
+                return *this;
+            }
+
+            Arc& operator=(const Arc&& moved)
+            {
+                this->beg = std::move(moved.beg); 
+                this->end = std::move(moved.end);
+                this->properties = std::move(moved.properties);
+                return *this;
+            }
             
             // Comparison operators
             bool operator==(const Arc& a) const
