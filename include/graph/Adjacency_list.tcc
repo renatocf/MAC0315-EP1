@@ -459,11 +459,11 @@ namespace graph
                             std::cout << ">> " << a << std::endl;
                         std::cout << std::endl;
                         
-                        arc_type *back =
-                        &(arc(arcs_list(vid,*this).back(),*this));
+                        arc_type& back =
+                        arc(arcs_list(vid,*this).back(),*this);
                         
                         this->remove_arc(
-                            back->beg,back->end,back->properties,false
+                            back.beg,back.end,back.properties,false
                         );
                     }
                     std::get<0>(this->adj_list[vid]) = nullptr;
