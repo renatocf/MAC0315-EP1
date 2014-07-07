@@ -68,7 +68,7 @@ namespace flow
         {
             os << "{ ";
                            os << "cost:"          << f.cost;
-                           os << "flux:"          << f.flux;
+                           os << ", flux:"        << f.flux;
             if(f.capacity) os << ", capacity:"    << f.capacity; 
             if(f.flux)     os << ", requirement:" << f.flux;
                            os << ", properties:"  << f.properties;
