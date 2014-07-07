@@ -59,7 +59,7 @@ namespace graph
         <Adjacency_list,directed,Vertex,Arc,Vertex_list,Arc_list>
     {
         private:
-            Adjacency_list& self = static_cast<Adjacency_list&>(*this);
+            Adjacency_list& self;
             
             typedef Adjacency_list_traits<Adjacency_list> adj_traits;
             typedef typename adj_traits::vertex_id       vertex_id;
@@ -75,6 +75,9 @@ namespace graph
             typedef typename adj_traits::arc_property    arc_property;
         
         protected:
+            Adjacency_list_gen() 
+                : self{static_cast<Adjacency_list&>(*this)} {}
+            
             // List iterators
             typedef typename arc_id_list::iterator       arc_iterator;
             typedef typename vertex_id_list::iterator    out_iterator;
@@ -156,7 +159,7 @@ namespace graph
         <Adjacency_list,undirected,Vertex,Arc,Vertex_list,Arc_list>
     {
         private:
-            Adjacency_list& self = static_cast<Adjacency_list&>(this);
+            Adjacency_list& self;
             
             typedef Adjacency_list_traits<Adjacency_list> adj_traits;
             typedef typename adj_traits::vertex_id       vertex_id;
@@ -172,6 +175,9 @@ namespace graph
             typedef typename adj_traits::arc_property    arc_property;
              
         protected:
+            Adjacency_list_gen() 
+                : self{static_cast<Adjacency_list&>(*this)} {}
+            
             // List iterators
             typedef typename arc_id_list::iterator       arc_iterator;
             typedef typename vertex_id_list::iterator    out_iterator;
@@ -261,7 +267,7 @@ namespace graph
         <Adjacency_list,bidirectional,Vertex,Arc,Vertex_list,Arc_list>
     {
         private:
-            Adjacency_list& self = static_cast<Adjacency_list&>(this);
+            Adjacency_list& self;
             
             typedef Adjacency_list_traits<Adjacency_list> adj_traits;
             typedef typename adj_traits::vertex_id       vertex_id;
@@ -277,6 +283,9 @@ namespace graph
             typedef typename adj_traits::arc_property    arc_property;
         
         protected:
+            Adjacency_list_gen() 
+                : self{static_cast<Adjacency_list&>(*this)} {}
+            
             // List iterators
             typedef typename arc_id_list::iterator       arc_iterator;
             typedef typename vertex_id_list::iterator    out_iterator;
@@ -384,7 +393,7 @@ namespace graph
             <self,Directed,Vertex,Arc,Vertex_list,Arc_list> Gen;
             typedef typename Gen::type       Adj_list;
             typedef typename Gen::vertex_map vertex_map;
-            friend Gen;
+            // friend class Gen;
             
         public:
             typedef Adjacency_list_traits<self> adj_traits;
