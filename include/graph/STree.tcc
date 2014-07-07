@@ -57,25 +57,25 @@ namespace graph
             {
                 for(const Arc& arc : arcs)
                 {
-                    if(depth[arc.beg().id] == -1
-                    && depth[arc.end().id] != -1)
+                    if(depth[arc.beg] == -1
+                    && depth[arc.end] != -1)
                     {
-                        radix = arc.beg().id;
-                        parnt[arc.beg().id] = arc.end().id;
-                        depth[arc.beg().id] = depth[arc.end().id]+1;
+                        radix = arc.beg;
+                        parnt[arc.beg] = arc.end;
+                        depth[arc.beg] = depth[arc.end]+1;
                     }
-                    else if(depth[arc.beg().id] != -1
-                         && depth[arc.end().id] == -1)
+                    else if(depth[arc.beg] != -1
+                         && depth[arc.end] == -1)
                     {
-                        parnt[arc.end().id] = arc.beg().id;
-                        depth[arc.end().id] = depth[arc.beg().id]+1;
+                        parnt[arc.end] = arc.beg;
+                        depth[arc.end] = depth[arc.beg]+1;
                     }
-                    else if(depth[arc.beg().id] == -1 
-                         && depth[arc.end().id] == -1)
+                    else if(depth[arc.beg] == -1 
+                         && depth[arc.end] == -1)
                     {
-                        parnt[arc.end().id] = arc.beg().id;
-                        depth[arc.beg().id] = 0;
-                        depth[arc.end().id] = 1;
+                        parnt[arc.end] = arc.beg;
+                        depth[arc.beg] = 0;
+                        depth[arc.end] = 1;
                     }
                     for(int d : depth) 
                         if(d > max_depth) max_depth = d;
@@ -85,13 +85,13 @@ namespace graph
             Cycle fundamental_cycle(const Arc& inserted)
             {
                 Cycle cycle { inserted };
-                vertex_id l { inserted.beg().id }; 
-                vertex_id r { inserted.end().id };
+                vertex_id l { inserted.beg }; 
+                vertex_id r { inserted.end };
                 int depth = depth[inserted.beg()]; 
                 
                 if(depth[inserted.end()] > depth) 
                     depth = depth[inserted.beg()];
-                l = inserted.beg().id; r = inserted.end().id;
+                l = inserted.beg; r = inserted.end;
                 
                 // Intermediate arcs 
                 // (when with different depths)
