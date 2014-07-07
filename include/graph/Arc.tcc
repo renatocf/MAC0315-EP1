@@ -31,30 +31,42 @@ namespace graph
         typename Directed   = directed
     >class Arc
     {
-        private:
-            const Vertex *beg_ptr;
-            const Vertex *end_ptr;
-            
         public:
-            typedef Vertex     vertex_type;
-            typedef Properties property_type;
+            typedef Arc*                          id_type;
+            typedef Vertex                        vertex_type;
+            typedef Properties                    property_type;
+            typedef typename vertex_type::id_type vertex_id;
             
+            const id_type   id;
+            const vertex_id beg;
+            const vertex_id end;
             property_type properties;
             
             explicit
-            Arc(const Vertex& beg, const Vertex& end, 
+            Arc(const vertex_type& beg, const vertex_type& end, 
                 const property_type properties = property_type{})
-                : beg_ptr{&beg}, end_ptr{&end},
+                : id{this}, beg{beg.id}, end{end.id},
                   properties{properties} {}
             
-            const Vertex& beg() const { return *(this->beg_ptr); }
-            const Vertex& end() const { return *(this->end_ptr); }
+            explicit
+            Arc(const vertex_id beg, const vertex_id end, 
+                const property_type properties = property_type{})
+                : id{this}, beg{beg}, end{end},
+                  properties{properties} {}
+            
+            Arc(const Arc& p)
+                : id{this}, beg{p.beg}, end{p.end},
+                  properties{p.properties} {}
+            
+            Arc(const Arc&& p)
+                : id{this}, beg{std::move(p.beg)}, end{std::move(p.end)},
+                  properties{std::move(p.properties)} {}
             
             // Comparison operators
             bool operator==(const Arc& a) const
             {
-                return this->beg()      == a.beg()
-                    && this->end()      == a.end()
+                return this->beg        == a.beg
+                    && this->end        == a.end
                     && this->properties == a.properties;
             }
             
@@ -66,7 +78,7 @@ namespace graph
             friend std::ostream& 
             operator<<(std::ostream& os, const Arc& a)
             {
-                os << "{ beg:" << a.beg() << ", end:" << a.end();
+                os << "{ beg:" << a.beg << ", end:" << a.end;
                 os << ", properties:" << a.properties << " }";
                 return os;
             }
