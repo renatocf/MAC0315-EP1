@@ -90,7 +90,7 @@ namespace graph
             >::type type;
             
         public:
-            static const int out_position {1}, in_position {0};
+            static const int out_position = 1, in_position = 0;
     };
     
     template<
@@ -172,40 +172,7 @@ namespace graph
             container_gen<Vertex_list,vertex_map>::type type;
             
         public:
-            static const int out_position {1}, in_position {2};
-            
-            // void add_arc(const arc_type& arc)
-            // {
-            //     // Throws if any vertex does not exist
-            //     vertex(arc.beg,*self); vertex(arc.end,*self);
-            //
-            //     // Put a pointer in the list of out neighbors
-            //     out_arcs_list(arc.beg,*self).push_back(arc);
-            //     in_arcs_list(arc.end,*self).push_back(arc);
-            // }
-            //
-            // void remove_arc(vertex_id beg, vertex_id end,
-            //                 arc_property prop, bool ignore_prop)
-            // {
-            //     // Throws if any vertex does not exist
-            //     vertex(beg,*self); vertex(end,*self);
-            //     
-            //     // Remove from beg's list of out arcs
-            //     out_iterator out_arc_beg, out_arc_end;
-            //     std::tie(out_arc_beg, out_arc_end) = out_arcs(beg,*self);
-            //     for(auto it = out_arc_beg; it != out_arc_end; ++it)
-            //         if(it->beg == beg && it->end == end
-            //         && (ignore_prop || it->properties == prop))
-            //             out_arcs_list(beg,*self).erase(it,it+1);
-            //     
-            //     // Remove from end's list of in arcs
-            //     in_iterator in_arc_beg, in_arc_end;
-            //     std::tie(in_arc_beg, in_arc_end) = in_arcs(beg,*self);
-            //     for(auto it = in_arc_beg; it != in_arc_end; ++it)
-            //         if(it->beg == beg && it->end == end
-            //         && (ignore_prop || it->properties == prop))
-            //             in_arcs_list(beg,*self).erase(it,it+1);
-            // }
+            static const int out_position = 1, in_position = 2;
     };
     
     template<
@@ -225,7 +192,6 @@ namespace graph
             <self,Directed,Vertex,Arc,Vertex_list,Arc_list> Gen;
             typedef typename Gen::type       Adj_list;
             typedef typename Gen::vertex_map vertex_map;
-            friend Gen;
             
         public:
             typedef Adjacency_list_traits<self> adj_traits;
@@ -290,19 +256,13 @@ namespace graph
                 {
                     for(auto& map : this->adj_list)
                     {
-                        if(std::get<1>(map)->id == vid) 
+                        if(std::get<0>(map)->id == vid) 
                             std::get<1>(map).clear();
                         for(const arc_type& a : std::get<1>(map))
                             if(a.beg == vid || a.end == vid)
                                 remove_arc(a,*this);
                         
                         std::get<0>(this->adj_list[vid]) = nullptr;
-                        
-                        // Remove from vertex list
-                        for(auto it = std::begin(this->vertices);
-                            it != std::end(this->vertices); ++it)
-                            if(it->id == vid)
-                                this->vertices.erase(it,it+1);
                     }
                 }
                 n_vertices--;
@@ -505,7 +465,7 @@ namespace graph
         {
             remove_arc_impl<D,V,A,VL,AL,
                 ADJ_LIST::out_position,ADJ_LIST::in_position>
-                ::remove_arc(a.bed,a.end,a.properties,false,g);
+                ::remove_arc(a.beg,a.end,a.properties,false,g);
         }
     
     template<ADJ_TEMPL>
