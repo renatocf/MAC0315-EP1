@@ -26,6 +26,7 @@
 #include <algorithm>
 #include <type_traits>
 #include <initializer_list>
+#include <typeinfo>
 
 // Libraries
 #include "Arc.tcc"
@@ -34,294 +35,387 @@
 #include "Exception.tcc"
 
 namespace graph 
-{
-    template<typename Selector,typename Value>
-    struct container_gen {};
-    
-    struct vecS {};
-    
-    template<typename Value>
-    struct container_gen<vecS,Value> {
-        typedef std::vector<Value> type;
-    };
-    
-    template<typename adj_list>struct Adjacency_list_traits;
-    
-    template<
-        typename Adjacency_list, typename directed, typename Vertex, 
-        typename Arc, typename Vertex_list, typename Arc_list
-    >class Adjacency_list_gen {};
-    
-    template<
-        typename Adjacency_list, typename Vertex, typename Arc,
-        typename Vertex_list, typename Arc_list
-    >class Adjacency_list_gen
-        <Adjacency_list,directed,Vertex,Arc,Vertex_list,Arc_list>
     {
-        private:
-            Adjacency_list *self;
-            
-            typedef Adjacency_list_traits<Adjacency_list> adj_traits;
-            typedef typename adj_traits::vertex_id       vertex_id;
-            typedef typename adj_traits::vertex_ptr      vertex_ptr;
-            typedef typename adj_traits::vertex_type     vertex_type;
-            typedef typename adj_traits::vertex_list     vertex_list;
-            typedef typename adj_traits::vertex_property vertex_property;
-            
-            typedef typename adj_traits::arc_id          arc_id;
-            typedef typename adj_traits::arc_type        arc_type;
-            typedef typename adj_traits::arc_list        arc_list;
-            typedef typename adj_traits::arc_property    arc_property;
+        template<typename Selector,typename Value>
+        struct container_gen {};
         
-        protected:
-            Adjacency_list_gen() 
-                : self(static_cast<Adjacency_list*>(this)) {}
+        struct vecS {};
+        
+        template<typename Value>
+        struct container_gen<vecS,Value> {
+            typedef std::vector<Value> type;
+        };
+        
+        template<typename adj_list>struct Adjacency_list_traits;
+        
+        template<
+            typename Adjacency_list, typename directed, typename Vertex, 
+            typename Arc, typename Vertex_list, typename Arc_list
+        >class Adjacency_list_gen {};
+        
+        template<
+            typename Adjacency_list, typename Vertex, typename Arc,
+            typename Vertex_list, typename Arc_list
+        >class Adjacency_list_gen
+            <Adjacency_list,directed,Vertex,Arc,Vertex_list,Arc_list>
+        {
+            private:
+                Adjacency_list *self;
+                
+                typedef Adjacency_list_traits<Adjacency_list> adj_traits;
+                typedef typename adj_traits::vertex_id       vertex_id;
+                typedef typename adj_traits::vertex_ptr      vertex_ptr;
+                typedef typename adj_traits::vertex_type     vertex_type;
+                typedef typename adj_traits::vertex_list     vertex_list;
+                typedef typename adj_traits::vertex_property vertex_property;
+                
+                typedef typename adj_traits::arc_id          arc_id;
+                typedef typename adj_traits::arc_type        arc_type;
+                typedef typename adj_traits::arc_list        arc_list;
+                typedef typename adj_traits::arc_property    arc_property;
             
-            // List iterators
-            typedef typename arc_list::iterator          out_iterator;
-            typedef void                                 in_iterator;
-            typedef std::pair<out_iterator,out_iterator> out_iterator_pair;
-            typedef void                                 in_iterator_pair;
-            
-            typedef std::tuple<vertex_ptr,arc_list> vertex_map;
-            
-            typedef typename container_gen<
-                Vertex_list,vertex_map
-            >::type type;
-            
-        public:
-            static const int out_position = 1, in_position = 0;
-    };
-    
-    template<
-        typename Adjacency_list, typename Vertex, typename Arc,
-        typename Vertex_list, typename Arc_list
-    >class Adjacency_list_gen
-        <Adjacency_list,undirected,Vertex,Arc,Vertex_list,Arc_list>
-    {
-        private:
-            Adjacency_list *self;
+            protected:
+                Adjacency_list_gen() 
+                    : self(static_cast<Adjacency_list*>(this)) {}
+                
+                // List iterators
+                typedef typename arc_list::iterator          out_iterator;
+                typedef void                                 in_iterator;
+                typedef std::pair<out_iterator,out_iterator> out_iterator_pair;
+                typedef void                                 in_iterator_pair;
+                
+                typedef typename arc_list::const_iterator const_out_iterator;
+                typedef void                              const_in_iterator;
+                typedef std::pair<const_out_iterator,const_out_iterator>
+                        const_out_iterator_pair;
+                typedef void const_in_iterator_pair;
+                
+                typedef std::tuple<vertex_ptr,arc_list> vertex_map;
+                
+                typedef typename container_gen<
+                    Vertex_list,vertex_map
+                >::type type;
+                
+            public:
+                static const int out_position = 1, in_position = 0;
+        };
+        
+        template<
+            typename Adjacency_list, typename Vertex, typename Arc,
+            typename Vertex_list, typename Arc_list
+        >class Adjacency_list_gen
+            <Adjacency_list,undirected,Vertex,Arc,Vertex_list,Arc_list>
+        {
+            private:
+                Adjacency_list *self;
 
-            typedef Adjacency_list_traits<Adjacency_list> adj_traits;
-            typedef typename adj_traits::vertex_id       vertex_id;
-            typedef typename adj_traits::vertex_ptr      vertex_ptr;
-            typedef typename adj_traits::vertex_type     vertex_type;
-            typedef typename adj_traits::vertex_list     vertex_list;
-            typedef typename adj_traits::vertex_property vertex_property;
+                typedef Adjacency_list_traits<Adjacency_list> adj_traits;
+                typedef typename adj_traits::vertex_id       vertex_id;
+                typedef typename adj_traits::vertex_ptr      vertex_ptr;
+                typedef typename adj_traits::vertex_type     vertex_type;
+                typedef typename adj_traits::vertex_list     vertex_list;
+                typedef typename adj_traits::vertex_property vertex_property;
 
-            typedef typename adj_traits::arc_id          arc_id;
-            typedef typename adj_traits::arc_type        arc_type;
-            typedef typename adj_traits::arc_list        arc_list;
-            typedef typename adj_traits::arc_property    arc_property;
+                typedef typename adj_traits::arc_id          arc_id;
+                typedef typename adj_traits::arc_type        arc_type;
+                typedef typename adj_traits::arc_list        arc_list;
+                typedef typename adj_traits::arc_property    arc_property;
 
-        protected:
-            Adjacency_list_gen() 
-                : self{static_cast<Adjacency_list*>(this)} {}
+            protected:
+                Adjacency_list_gen() 
+                    : self{static_cast<Adjacency_list*>(this)} {}
 
-            // List iterators
-            typedef typename arc_list::iterator          out_iterator;
-            typedef typename arc_list::iterator          in_iterator;
-            typedef std::pair<out_iterator,out_iterator> out_iterator_pair;
-            typedef out_iterator_pair                    in_iterator_pair;
-            
-            typedef std::tuple<vertex_ptr,arc_list> vertex_map;
-            typedef typename container_gen<
-                Vertex_list,vertex_map
-            >::type type;
-            
-        public:
-            static const int out_position = 1, in_position = 1;
-    };
+                // List iterators
+                typedef typename arc_list::iterator          out_iterator;
+                typedef typename arc_list::iterator          in_iterator;
+                typedef std::pair<out_iterator,out_iterator> out_iterator_pair;
+                typedef out_iterator_pair                    in_iterator_pair;
+                
+                typedef typename arc_list::const_iterator const_out_iterator;
+                typedef typename arc_list::const_iterator const_in_iterator;
+                typedef std::pair<const_out_iterator,const_out_iterator>
+                        const_out_iterator_pair;
+                typedef std::pair<const_in_iterator,const_in_iterator>
+                        const_in_iterator_pair;
+                
+                typedef std::tuple<vertex_ptr,arc_list> vertex_map;
+                typedef typename container_gen<
+                    Vertex_list,vertex_map
+                >::type type;
+                
+            public:
+                static const int out_position = 1, in_position = 1;
+        };
 
-    template<
-        typename Adjacency_list, typename Vertex, typename Arc,
-        typename Vertex_list, typename Arc_list
-    >class Adjacency_list_gen
-        <Adjacency_list,bidirectional,Vertex,Arc,Vertex_list,Arc_list>
-    {
-        private:
-            Adjacency_list *self;
+        template<
+            typename Adjacency_list, typename Vertex, typename Arc,
+            typename Vertex_list, typename Arc_list
+        >class Adjacency_list_gen
+            <Adjacency_list,bidirectional,Vertex,Arc,Vertex_list,Arc_list>
+        {
+            private:
+                Adjacency_list *self;
 
-            typedef Adjacency_list_traits<Adjacency_list> adj_traits;
-            typedef typename adj_traits::vertex_id       vertex_id;
-            typedef typename adj_traits::vertex_ptr      vertex_ptr;
-            typedef typename adj_traits::vertex_type     vertex_type;
-            typedef typename adj_traits::vertex_list     vertex_list;
-            typedef typename adj_traits::vertex_property vertex_property;
+                typedef Adjacency_list_traits<Adjacency_list> adj_traits;
+                typedef typename adj_traits::vertex_id       vertex_id;
+                typedef typename adj_traits::vertex_ptr      vertex_ptr;
+                typedef typename adj_traits::vertex_type     vertex_type;
+                typedef typename adj_traits::vertex_list     vertex_list;
+                typedef typename adj_traits::vertex_property vertex_property;
 
-            typedef typename adj_traits::arc_id          arc_id;
-            typedef typename adj_traits::arc_type        arc_type;
-            typedef typename adj_traits::arc_list        arc_list;
-            typedef typename adj_traits::arc_property    arc_property;
+                typedef typename adj_traits::arc_id          arc_id;
+                typedef typename adj_traits::arc_type        arc_type;
+                typedef typename adj_traits::arc_list        arc_list;
+                typedef typename adj_traits::arc_property    arc_property;
 
-        protected:
-            Adjacency_list_gen() 
-                : self{static_cast<Adjacency_list*>(this)} {}
-            
-            // List iterators
-            typedef typename arc_list::iterator          out_iterator;
-            typedef typename arc_list::iterator          in_iterator;
-            typedef std::pair<out_iterator,out_iterator> out_iterator_pair;
-            typedef std::pair<in_iterator,in_iterator>   in_iterator_pair;
-            
-            // Adjacency list type
-            typedef std::tuple<vertex_ptr,arc_list,
-                    vertex_list,vertex_list> vertex_map;
-            
-            typedef typename 
-            container_gen<Vertex_list,vertex_map>::type type;
-            
-        public:
-            static const int out_position = 1, in_position = 2;
-    };
-    
-    template<
-        typename Directed    = graph::directed,
-        typename Vertex      = graph::Vertex<>,
-        typename Arc         = graph::Arc<Vertex>,
-        typename Vertex_list = vecS,
-        typename Arc_list    = vecS
-    >class Adjacency_list
-        : public Adjacency_list_gen<
-            Adjacency_list<Directed,Vertex,Arc,Vertex_list,Arc_list>,
-                Directed,Vertex,Arc,Vertex_list,Arc_list>
-    {
-        private: 
-            typedef Adjacency_list self;
-            typedef Adjacency_list_gen
-            <self,Directed,Vertex,Arc,Vertex_list,Arc_list> Gen;
-            typedef typename Gen::type       Adj_list;
-            typedef typename Gen::vertex_map vertex_map;
-            
-        public:
-            typedef Adjacency_list_traits<self> adj_traits;
-            typedef typename adj_traits::vertex_id       vertex_id;
-            typedef typename adj_traits::vertex_ptr      vertex_ptr;
-            typedef typename adj_traits::vertex_type     vertex_type;
-            typedef typename adj_traits::vertex_list     vertex_list;
-            typedef typename adj_traits::vertex_property vertex_property;
-            
-            typedef typename adj_traits::arc_id          arc_id;
-            typedef typename adj_traits::arc_type        arc_type;
-            typedef typename adj_traits::arc_list        arc_list;
-            typedef typename adj_traits::arc_property    arc_property;
-            
-            typedef typename Gen::in_iterator       in_iterator;
-            typedef typename Gen::in_iterator_pair  in_iterator_pair;
-            typedef typename Gen::out_iterator      out_iterator;
-            typedef typename Gen::out_iterator_pair out_iterator_pair;
-            
-            struct vertex_iterator
-            {
-                typedef Adjacency_list super;
-                typedef Adjacency_list::vertex_id  vertex_id;
-                typedef Adjacency_list::vertex_ptr vertex_ptr;
-                super* adj_list;
+            protected:
+                Adjacency_list_gen() 
+                    : self{static_cast<Adjacency_list*>(this)} {}
                 
-                vertex_id current;
-                    
-                typedef std::forward_iterator_tag iterator_category;
-                typedef vertex_ptr                value_type;
-                typedef vertex_ptr*               pointer;
-                typedef vertex_ptr&               reference;
-                typedef std::size_t               size_type;
-                typedef std::ptrdiff_t            difference_type;
+                // List iterators
+                typedef typename arc_list::iterator          out_iterator;
+                typedef typename arc_list::iterator          in_iterator;
+                typedef std::pair<out_iterator,out_iterator> out_iterator_pair;
+                typedef std::pair<in_iterator,in_iterator>   in_iterator_pair;
                 
-                vertex_iterator() {}
+                typedef typename arc_list::const_iterator const_out_iterator;
+                typedef typename arc_list::const_iterator const_in_iterator;
+                typedef std::pair<const_out_iterator,const_out_iterator>
+                        const_out_iterator_pair;
+                typedef std::pair<const_in_iterator,const_in_iterator>
+                        const_in_iterator_pair;
                 
-                vertex_iterator(super* adj_list)
-                    : adj_list{adj_list}, current{}
-                { while(!std::get<0>((*adj_list)[current])) ++current; }
+                // Adjacency list type
+                typedef std::tuple<vertex_ptr,arc_list,
+                        vertex_list,vertex_list> vertex_map;
                 
-                vertex_iterator(super* adj_list, int)
-                    : adj_list{adj_list}, 
-                      current{adj_list->num_vertices()} {}
+                typedef typename 
+                container_gen<Vertex_list,vertex_map>::type type;
                 
-                vertex_type& operator*()
-                { return *std::get<0>((*adj_list)[current]); }
+            public:
+                static const int out_position = 1, in_position = 2;
+        };
+        
+        template<
+            typename Directed    = graph::directed,
+            typename Vertex      = graph::Vertex<>,
+            typename Arc         = graph::Arc<Vertex>,
+            typename Vertex_list = vecS,
+            typename Arc_list    = vecS
+        >class Adjacency_list
+            : public Adjacency_list_gen<
+                Adjacency_list<Directed,Vertex,Arc,Vertex_list,Arc_list>,
+                    Directed,Vertex,Arc,Vertex_list,Arc_list>
+        {
+            private: 
+                typedef Adjacency_list self;
+                typedef Adjacency_list_gen
+                <self,Directed,Vertex,Arc,Vertex_list,Arc_list> Gen;
+                typedef typename Gen::type       Adj_list;
+                typedef typename Gen::vertex_map vertex_map;
                 
-                const vertex_type& operator*() const
-                { return *std::get<0>((*adj_list)[current]); }
+            public:
+                typedef Adjacency_list_traits<self> adj_traits;
+                typedef typename adj_traits::vertex_id       vertex_id;
+                typedef typename adj_traits::vertex_ptr      vertex_ptr;
+                typedef typename adj_traits::vertex_type     vertex_type;
+                typedef typename adj_traits::vertex_list     vertex_list;
+                typedef typename adj_traits::vertex_property vertex_property;
                 
-                vertex_iterator& operator++()
-                { while(!std::get<0>((*adj_list)[++current]));
-                  return *this; }
+                typedef typename adj_traits::arc_id          arc_id;
+                typedef typename adj_traits::arc_type        arc_type;
+                typedef typename adj_traits::arc_list        arc_list;
+                typedef typename adj_traits::arc_property    arc_property;
                 
-                vertex_iterator operator++(int)
-                { vertex_iterator temp = *this; ++*this; return temp; }
-                    
-                vertex_ptr& operator->() const
-                { return std::get<0>((*adj_list)[current]); }
+                typedef typename Gen::in_iterator        in_iterator;
+                typedef typename Gen::in_iterator_pair   in_iterator_pair;
+                typedef typename Gen::const_in_iterator  const_in_iterator;
+                typedef typename Gen::const_in_iterator_pair
+                                 const_in_iterator_pair;
                 
-                bool operator==(vertex_iterator& it)
-                { return it.current == this->current; }
+                typedef typename Gen::out_iterator       out_iterator;
+                typedef typename Gen::out_iterator_pair  out_iterator_pair;
+                typedef typename Gen::const_out_iterator const_out_iterator;
+                typedef typename Gen::const_out_iterator_pair
+                                 const_out_iterator_pair;
                 
-                bool operator!=(vertex_iterator& it)
-                { return !operator==(it); }
-            };
-            
-            struct arc_iterator
-            {
-                typedef Adjacency_list super;
-                typedef Adjacency_list::arc_type        arc_type;
-                typedef Adjacency_list::out_iterator    out_iterator;
-                typedef Adjacency_list::vertex_iterator vertex_iterator;
-                super* adj_list;
-                
-                bool finished;
-                vertex_iterator vit, vit_end;
-                out_iterator oit, oit_end;
-                
-                typedef std::forward_iterator_tag iterator_category;
-                typedef arc_type                  value_type;
-                typedef arc_type*                 pointer;
-                typedef arc_type&                 reference;
-                typedef std::size_t               size_type;
-                typedef std::ptrdiff_t            difference_type;
-                
-                arc_iterator() {}
-                
-                arc_iterator(super *adj_list)
-                    : adj_list{adj_list}, finished{false}
-                { 
-                    std::tie(vit,vit_end) = adj_list->vertices();
-                    std::tie(oit,oit_end) 
-                        = out_arcs(vit->id,*adj_list);
-                }
-                
-                arc_iterator(super *adj_list, int)
-                    : adj_list{adj_list}, finished {true} {}
-                
-                value_type& operator*() { return *oit; }
-                const value_type& operator*() const { return *oit; }
-                
-                arc_iterator& operator++()
+                struct vertex_iterator
                 {
-                    ++oit; // Continues untill finish or in empty lists
-                    while(oit == oit_end && !this->finished)
-                        if(++vit != vit_end)
-                            std::tie(oit,oit_end) 
-                            = out_arcs(vit->id,*adj_list);
-                        else this->finished = true;
-                    return *this; 
-                }
-                
-                arc_iterator operator++(int)
-                { arc_iterator temp = *this; ++*this; return temp; }
+                    typedef Adjacency_list super;
+                    typedef Adjacency_list::vertex_id  vertex_id;
+                    typedef Adjacency_list::vertex_ptr vertex_ptr;
+                    const super* adj_list;
                     
-                value_type *operator->() const { return oit; }
+                    vertex_id current;
+                        
+                    typedef std::forward_iterator_tag iterator_category;
+                    typedef vertex_ptr                value_type;
+                    typedef vertex_ptr*               pointer;
+                    typedef vertex_ptr&               reference;
+                    typedef std::size_t               size_type;
+                    typedef std::ptrdiff_t            difference_type;
+                    
+                    vertex_iterator() {}
+                    
+                    vertex_iterator(const super* adj_list)
+                        : adj_list{adj_list}, current{}
+                    { while(!std::get<0>((*adj_list)[current])) ++current;}
+                    
+                    vertex_iterator(const super* adj_list, int)
+                        : adj_list{adj_list}, 
+                          // Initialized with n-1 because starts from 0
+                          current{adj_list->num_vertices()-1} {}
+                    
+                    vertex_type& operator*()
+                    { return *std::get<0>((*adj_list)[current]); }
+                    
+                    const vertex_type& operator*() const
+                    { return *std::get<0>((*adj_list)[current]); }
+                    
+                    vertex_iterator& operator++()
+                    { while(!std::get<0>((*adj_list)[++current]));
+                      return *this; }
+                    
+                    vertex_iterator operator++(int)
+                    { vertex_iterator temp = *this; ++*this; return temp; }
+                    
+                    const vertex_ptr& operator->() const
+                    { return std::get<0>((*adj_list)[current]); }
+                    
+                    bool operator==(vertex_iterator& it)
+                    { return it.current == this->current; }
+                    
+                    bool operator!=(vertex_iterator& it)
+                    { return !operator==(it); }
+                };
                 
-                bool operator==(arc_iterator& it)
-                { return it.finished == this->finished; }
+                typedef const vertex_iterator const_vertex_iterator;
                 
-                bool operator!=(arc_iterator& it)
-                { return !operator==(it); }
-            };
+                struct arc_iterator
+                {
+                    typedef Adjacency_list super;
+                    typedef Adjacency_list::arc_type        arc_type;
+                    typedef Adjacency_list::out_iterator    out_iterator;
+                    typedef Adjacency_list::vertex_iterator vertex_iterator;
+                    super* adj_list;
+                    
+                    bool finished;
+                    vertex_iterator vit, vit_end;
+                    out_iterator oit, oit_end;
+                    
+                    typedef std::forward_iterator_tag iterator_category;
+                    typedef arc_type                  value_type;
+                    typedef arc_type*                 pointer;
+                    typedef arc_type&                 reference;
+                    typedef std::size_t               size_type;
+                    typedef std::ptrdiff_t            difference_type;
+                    
+                    arc_iterator() {}
+                    
+                    arc_iterator(super *adj_list)
+                        : adj_list{adj_list}, finished{false}
+                    { 
+                        std::tie(vit,vit_end) = adj_list->vertices();
+                        std::tie(oit,oit_end)
+                            = out_arcs(vit->id,*adj_list);
+                    }
+                    
+                    arc_iterator(super *adj_list, int)
+                        : adj_list{adj_list}, finished {true} {}
+                    
+                    value_type& operator*() { return *oit; }
+                    const value_type& operator*() const { return *oit; }
+                    
+                    arc_iterator& operator++()
+                    {
+                        ++oit; // Continues untill finish or in empty lists
+                        while(oit == oit_end && !this->finished)
+                            if(++vit != vit_end)
+                                std::tie(oit,oit_end) 
+                                = out_arcs(vit->id,*adj_list);
+                            else this->finished = true;
+                        return *this; 
+                    }
+                    
+                    arc_iterator operator++(int)
+                    { arc_iterator temp = *this; ++*this; return temp; }
+                        
+                    const out_iterator& operator->() const { return oit; }
+                    
+                    bool operator==(arc_iterator& it)
+                    { return it.finished == this->finished; }
+                    
+                    bool operator!=(arc_iterator& it)
+                    { return !operator==(it); }
+                };
+                
+                struct const_arc_iterator
+                {
+                    typedef Adjacency_list super;
+                    typedef Adjacency_list::arc_type        arc_type;
+                    typedef Adjacency_list::out_iterator    out_iterator;
+                    typedef Adjacency_list::vertex_iterator vertex_iterator;
+                    const super* adj_list;
+                    
+                    bool finished;
+                    const_vertex_iterator vit, vit_end;
+                    const_out_iterator    oit, oit_end;
+                    
+                    typedef std::forward_iterator_tag iterator_category;
+                    typedef arc_type                  value_type;
+                    typedef arc_type*                 pointer;
+                    typedef arc_type&                 reference;
+                    typedef std::size_t               size_type;
+                    typedef std::ptrdiff_t            difference_type;
+                    
+                    const_arc_iterator() {}
+                    
+                    const_arc_iterator(const super *adj_list)
+                        : adj_list{adj_list}, finished{false}
+                    { 
+                        std::tie(vit,vit_end) = adj_list->vertices();
+                        oit = std::begin(out_arcs_list(vit->id,*adj_list));
+                        oit_end 
+                        = std::end(out_arcs_list(vit->id,*adj_list));
+                    }
+                    
+                    const_arc_iterator(const super *adj_list, int)
+                        : adj_list{adj_list}, finished {true} {}
+                    
+                    const value_type& operator*() { return *oit; }
+                    const value_type& operator*() const { return *oit; }
+                    
+                    arc_iterator& operator++()
+                    {
+                        ++oit; // Continues untill finish or in empty lists
+                        while(oit == oit_end && !this->finished)
+                            if(++vit != vit_end)
+                                std::tie(oit,oit_end) 
+                                = out_arcs(vit->id,*adj_list);
+                            else this->finished = true;
+                        return *this; 
+                    }
+                    
+                    arc_iterator operator++(int)
+                    { arc_iterator temp = *this; ++*this; return temp; }
+                        
+                    const out_iterator& operator->() const { return oit; }
+                    
+                    bool operator==(arc_iterator& it)
+                    { return it.finished == this->finished; }
+                    
+                    bool operator!=(arc_iterator& it)
+                    { return !operator==(it); }
+                };
             
             typedef std::pair<vertex_iterator,vertex_iterator> 
                     vertex_iterator_pair;
+            typedef std::pair<const vertex_iterator,const vertex_iterator> 
+                    vertex_iterator_pair_const;
             typedef std::pair<arc_iterator,arc_iterator> 
                     arc_iterator_pair;
+            typedef std::pair<const arc_iterator,const arc_iterator> 
+                    arc_iterator_pair_const;
         
         private:
             Adj_list adj_list;
@@ -336,12 +430,23 @@ namespace graph
             
         public:
             unsigned long n_vertices, n_arcs;
+            
             Adjacency_list(vertex_list vertices = vertex_list{},
                            arc_list    arcs     = arc_list{})
-                : adj_list{this->max_id(vertices)+1}
+                : adj_list{this->max_id(vertices)+1},
+                  n_vertices{0}, n_arcs{0}
             {
                 for(vertex_type& v : vertices) this->add_vertex(v);
                 for(arc_type& a : arcs)        add_arc(a,*this);
+            }
+            
+            Adjacency_list(size_t n_vertices, 
+                           vertex_type prototype = vertex_type{0})
+                : adj_list{n_vertices}, n_vertices{0}, n_arcs{0}
+            {
+                vertex_id id {};
+                for(size_t m = 0; m < n_vertices; ++m, ++id)
+                    this->add_vertex(vertex_type{id,prototype});
             }
             
             vertex_iterator_pair vertices()
@@ -364,6 +469,7 @@ namespace graph
             
             void add_vertex(const vertex_type& v)
             {
+                std::cerr << "Adding vertex" << std::endl;
                 if(v.id > this->num_vertices())
                     this->adj_list.resize(v.id);
                 std::get<0>(this->adj_list[v.id])
@@ -391,8 +497,18 @@ namespace graph
                 n_vertices--;
             }
             
-            size_t num_vertices () { return this->n_vertices; }
-            size_t num_arcs     () { return this->n_arcs;     }
+            size_t num_vertices () const { return this->n_vertices; }
+            size_t num_arcs     () const { return this->n_arcs;     }
+            
+            friend std::ostream& 
+            operator<<(std::ostream& os, const Adjacency_list& t)
+            {
+                const_vertex_iterator it{&t},it_end{&t,1};
+                for(; it != it_end; ++it) os << *it << std::endl;
+                
+                const_arc_iterator ait{&t},ait_end{&t,1};
+                for(; ait != ait_end; ++ait) os << *ait << std::endl;
+            }
     };
         
     template<
@@ -425,7 +541,7 @@ namespace graph
     
     // Vertex list
     template<ADJ_TEMPL>
-        inline typename ADJ_LIST::vertex_iterator_pair& 
+        inline typename ADJ_LIST::vertex_iterator_pair
         vertices(ADJ_LIST& g) { return g.vertices(); }
     
     // Get vertex
@@ -466,7 +582,7 @@ namespace graph
     
     // Arc list
     template<ADJ_TEMPL>
-        inline typename ADJ_LIST::arc_iterator_pair& 
+        inline typename ADJ_LIST::arc_iterator_pair
         arcs(ADJ_LIST& g) { return g.arcs(); }
     
     // Get arc
@@ -479,6 +595,7 @@ namespace graph
             std::tie(arc_beg, arc_end) = out_arcs(beg,g);
             for(auto it = arc_beg; it != arc_end; ++it)
                 if(it->beg == beg && it->end == end) return *it;
+            throw arc_not_found{};
         }
         
     template<ADJ_TEMPL>
@@ -492,6 +609,7 @@ namespace graph
             for(auto it = arc_beg; it != arc_end; ++it)
                 if(it->beg == beg && it->end == end
                 && it->properties == prop) return *it;
+            throw arc_not_found{};
         }
     
     // Add arcs
@@ -524,6 +642,7 @@ namespace graph
         inline void 
         add_arc(typename ADJ_LIST::arc_type a, ADJ_LIST& g) 
         { 
+            std::cerr << "Adding arc" << std::endl;
             add_arc_impl<D,V,A,VL,AL,ADJ_LIST::out_position,
                 ADJ_LIST::in_position>::add_arc(a,g); 
         }
@@ -617,7 +736,7 @@ namespace graph
     // Out arcs
     template<ADJ_TEMPL>
         inline typename ADJ_LIST::out_iterator_pair
-        out_arcs(const typename ADJ_LIST::vertex_id& vid, ADJ_LIST& g)
+        out_arcs(typename ADJ_LIST::vertex_id& vid, ADJ_LIST& g)
         {
             static_assert(
                 !std::is_void<typename ADJ_LIST::out_iterator_pair>(),
@@ -626,10 +745,10 @@ namespace graph
             return { std::begin (out_arcs_list(vid,g)) ,
                      std::end   (out_arcs_list(vid,g)) };
         }
-            
+    
     template<ADJ_TEMPL>
         inline typename ADJ_LIST::arc_list& out_arcs_list
-        (const typename ADJ_LIST::vertex_id& vid, ADJ_LIST& g)
+        (typename ADJ_LIST::vertex_id& vid, ADJ_LIST& g)
         { 
             static_assert(
                 !std::is_void<typename ADJ_LIST::out_iterator_pair>(),
@@ -652,7 +771,7 @@ namespace graph
     // In arcs
     template<ADJ_TEMPL>
         inline typename ADJ_LIST::in_iterator_pair 
-        in_arcs(const typename ADJ_LIST::vertex_id& vid, ADJ_LIST& g)
+        in_arcs(typename ADJ_LIST::vertex_id& vid, ADJ_LIST& g)
         {
             static_assert(
                 !std::is_void<typename ADJ_LIST::in_iterator_pair>(),
