@@ -325,7 +325,6 @@ namespace graph
         
         private:
             Adj_list adj_list;
-            unsigned long n_vertices, n_arcs;
             
             vertex_id max_id(vertex_list vl) 
             {
@@ -336,6 +335,7 @@ namespace graph
             }
             
         public:
+            unsigned long n_vertices, n_arcs;
             Adjacency_list(vertex_list vertices = vertex_list{},
                            arc_list    arcs     = arc_list{})
                 : adj_list{this->max_id(vertices)+1}
@@ -503,6 +503,7 @@ namespace graph
                 vertex(a.beg,g); vertex(a.end,g);
                 add_arc_impl<D,V,A,VL,AL,out,0>::add_arc(a,g);
                 add_arc_impl<D,V,A,VL,AL,0,in>::add_arc(a,g);
+                g.n_arcs++;
         }};
     
     template<ADJ_TEMPL,int out>
@@ -599,6 +600,7 @@ namespace graph
             remove_arc_impl<D,V,A,VL,AL,
                 ADJ_LIST::out_position,ADJ_LIST::in_position>
                 ::remove_arc(a.beg,a.end,a.properties,false,g);
+            g.n_arcs--;
         }
     
     template<ADJ_TEMPL>
@@ -609,6 +611,7 @@ namespace graph
             remove_arc_impl<D,V,A,VL,AL,
                 ADJ_LIST::out_position,ADJ_LIST::in_position>
                 ::remove_arc(beg,end,{},false,g);
+            g.n_arcs--;
         }
 
     // Out arcs
