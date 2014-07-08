@@ -210,13 +210,125 @@ namespace graph
             typedef typename Gen::in_iterator_pair  in_iterator_pair;
             typedef typename Gen::out_iterator      out_iterator;
             typedef typename Gen::out_iterator_pair out_iterator_pair;
+            
+            struct vertex_iterator
+            {
+                typedef Adjacency_list super;
+                typedef Adjacency_list::vertex_id  vertex_id;
+                typedef Adjacency_list::vertex_ptr vertex_ptr;
+                super* adj_list;
+                
+                vertex_id current;
+                    
+                typedef std::forward_iterator_tag iterator_category;
+                typedef vertex_ptr                value_type;
+                typedef vertex_ptr*               pointer;
+                typedef vertex_ptr&               reference;
+                typedef std::size_t               size_type;
+                typedef std::ptrdiff_t            difference_type;
+                
+                vertex_iterator() {}
+                
+                vertex_iterator(super* adj_list)
+                    : adj_list{adj_list}, current{}
+                { while(!std::get<0>((*adj_list)[current])) ++current; }
+                
+                vertex_iterator(super* adj_list, int)
+                    : adj_list{adj_list}, 
+                      current{adj_list->num_vertices()} {}
+                
+                vertex_type& operator*()
+                { return *std::get<0>((*adj_list)[current]); }
+                
+                const vertex_type& operator*() const
+                { return *std::get<0>((*adj_list)[current]); }
+                
+                vertex_iterator& operator++()
+                { while(!std::get<0>((*adj_list)[++current]));
+                  return *this; }
+                
+                vertex_iterator operator++(int)
+                { vertex_iterator temp = *this; ++*this; return temp; }
+                    
+                vertex_ptr& operator->() const
+                { return std::get<0>((*adj_list)[current]); }
+                
+                bool operator==(vertex_iterator& it)
+                { return it.current == this->current; }
+                
+                bool operator!=(vertex_iterator& it)
+                { return !operator==(it); }
+            };
+            
+            struct arc_iterator
+            {
+                typedef Adjacency_list super;
+                typedef Adjacency_list::arc_type        arc_type;
+                typedef Adjacency_list::out_iterator    out_iterator;
+                typedef Adjacency_list::vertex_iterator vertex_iterator;
+                super* adj_list;
+                
+                bool finished;
+                vertex_iterator vit, vit_end;
+                out_iterator oit, oit_end;
+                
+                typedef std::forward_iterator_tag iterator_category;
+                typedef arc_type                  value_type;
+                typedef arc_type*                 pointer;
+                typedef arc_type&                 reference;
+                typedef std::size_t               size_type;
+                typedef std::ptrdiff_t            difference_type;
+                
+                arc_iterator() {}
+                
+                arc_iterator(super *adj_list)
+                    : adj_list{adj_list}, finished{false}
+                { 
+                    std::tie(vit,vit_end) = adj_list->vertices();
+                    std::tie(oit,oit_end) 
+                        = out_arcs(vit->id,*adj_list);
+                }
+                
+                arc_iterator(super *adj_list, int)
+                    : adj_list{adj_list}, finished {true} {}
+                
+                value_type& operator*() { return *oit; }
+                const value_type& operator*() const { return *oit; }
+                
+                arc_iterator& operator++()
+                {
+                    ++oit; // Continues untill finish or in empty lists
+                    while(oit == oit_end && !this->finished)
+                        if(++vit != vit_end)
+                            std::tie(oit,oit_end) 
+                            = out_arcs(vit->id,*adj_list);
+                        else this->finished = true;
+                    return *this; 
+                }
+                
+                arc_iterator operator++(int)
+                { arc_iterator temp = *this; ++*this; return temp; }
+                    
+                value_type *operator->() const { return oit; }
+                
+                bool operator==(arc_iterator& it)
+                { return it.finished == this->finished; }
+                
+                bool operator!=(arc_iterator& it)
+                { return !operator==(it); }
+            };
+            
+            typedef std::pair<vertex_iterator,vertex_iterator> 
+                    vertex_iterator_pair;
+            typedef std::pair<arc_iterator,arc_iterator> 
+                    arc_iterator_pair;
         
         private:
             Adj_list adj_list;
             unsigned long n_vertices, n_arcs;
             
             vertex_id max_id(vertex_list vl) 
-            { 
+            {
                 vertex_id max_id {};
                 for(const vertex_type& v : vl)
                     if(v.id > max_id) max_id = v.id;
@@ -226,11 +338,22 @@ namespace graph
         public:
             Adjacency_list(vertex_list vertices = vertex_list{},
                            arc_list    arcs     = arc_list{})
-                : adj_list{this->max_id(vertices)+1},
-                  n_vertices{vertices.size()}, n_arcs{arcs.size()}
+                : adj_list{this->max_id(vertices)+1}
             {
                 for(vertex_type& v : vertices) this->add_vertex(v);
                 for(arc_type& a : arcs)        add_arc(a,*this);
+            }
+            
+            vertex_iterator_pair vertices()
+            {
+                return { vertex_iterator{this},
+                         vertex_iterator{this,1} };
+            }
+            
+            arc_iterator_pair arcs()
+            {
+                return { arc_iterator{this},
+                         arc_iterator{this,1} };
             }
             
             inline vertex_map& operator[](vertex_id vid) 
@@ -300,6 +423,11 @@ namespace graph
     
     // VERTEX FUNCTIONS ////////////////////////////////////////////////
     
+    // Vertex list
+    template<ADJ_TEMPL>
+        inline typename ADJ_LIST::vertex_iterator_pair& 
+        vertices(ADJ_LIST& g) { return g.vertices(); }
+    
     // Get vertex
     template<ADJ_TEMPL>
         inline typename ADJ_LIST::vertex_type& vertex
@@ -335,6 +463,11 @@ namespace graph
         { g.remove_vertex(vid,{},true); }
     
     // ARC FUNCTIONS ///////////////////////////////////////////////////
+    
+    // Arc list
+    template<ADJ_TEMPL>
+        inline typename ADJ_LIST::arc_iterator_pair& 
+        arcs(ADJ_LIST& g) { return g.arcs(); }
     
     // Get arc
     template<ADJ_TEMPL>
