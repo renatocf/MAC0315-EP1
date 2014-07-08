@@ -21,6 +21,7 @@
  */
 
 // Default libraries
+#include <tuple>
 #include <cstdio>
 #include <iostream>
 using namespace std;
@@ -72,7 +73,6 @@ int main(int argc, char **argv)
     cout << endl << "Digraph" << endl;
     cout << "=======================" << endl;
     typedef graph::Adjacency_list<graph::directed,vertex,arc> digraph;
-    // typedef graph::Adjacency_list<graph::bidirectional,vertex,arc> digraph;
     
     vertex_list tr1_v;
     
@@ -93,57 +93,32 @@ int main(int argc, char **argv)
 
     digraph T { tr1_v, tr1_a };
     
-    for(auto& v : all_vertices(T))
-        cout << v << endl;
-    for(auto& a : all_arcs(T))
-        cout << a << endl;
-    cout << endl;
+    typename digraph::vertex_iterator it,it_end;
+    for(std::tie(it,it_end) = T.vertices(); it != it_end; ++it)
+        cout << *it << endl;
     
-    graph::remove_vertex(0,T);
+    typename digraph::arc_iterator ait,ait_end;
+    for(std::tie(ait,ait_end) = T.arcs(); ait != ait_end; ++ait)
+        cout << *ait << endl;
     
-    for(auto& v : all_vertices(T))
-        cout << v << endl;
-    for(auto& a : all_arcs(T))
-        cout << a << endl;
-    cout << endl;
+    cout << "Before removing" << endl;
+    for(int i = 0; i <= 4; i++)
+    {
+        cout << "List " << i << endl;
+        for(auto& a : out_arcs_list(i,T))
+            cout << a << endl;
+    }
     
-    // cout << "Adding 0->2" << endl;
-    // add_arc(arc{0,2},T);
-    //
-    // cout << "Before removing" << endl;
-    // for(auto& v : out_arcs_list(0,T))
-    //     cout << graph::vertex(v,T) << endl;
-    // for(auto& a : arcs_list(0,T))
-    //     cout << graph::arc(a,T) << endl;
-    //
-    // cout << "Removing 0->2" << endl;
-    // remove_arc(arc{0,2},T);
-    //
-    // cout << "Removing 0->1 with empty property" << endl;
-    // remove_arc(arc{0,1},T);
-    //
-    // cout << "After removing" << endl;
-    // for(auto& v : out_arcs_list(0,T))
-    //     cout << graph::vertex(v,T) << endl;
-    // for(auto& a : arcs_list(0,T))
-    //     cout << graph::arc(a,T) << endl;
-    //
-    // remove_arc(0,1,T);
-    //
-    // cout << "After removing" << endl;
-    // for(auto& v : out_arcs_list(0,T))
-    //     cout << graph::vertex(v,T) << endl;
-    // for(auto& a : arcs_list(0,T))
-    //     cout << graph::arc(a,T) << endl;
-    
-    cout << endl << "Spanning Tree" << endl;
-    cout << "=======================" << endl;
-    typedef graph::STree<vertex,arc> stree;
-    
-    // stree initial { T.num_vertices(), 
-                    // 0, {tr1_a[0], tr1_a[1], tr1_a[7], tr1_a[3]} };
-    
-    // cout << initial << endl;
+    add_arc(arc{0,2},T);
+    remove_arc(0,1,T);
+
+    cout << "After removing" << endl;
+    for(int i = 0; i <= 4; i++)
+    {
+        cout << "List " << i << endl;
+        for(auto& a : out_arcs_list(i,T))
+            cout << a << endl;
+    }
     
     return EXIT_SUCCESS;
 }
