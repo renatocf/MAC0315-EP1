@@ -28,7 +28,7 @@ namespace flow
     template<
         typename Graph = graph::Adjacency_list
             <directed,flow::Vertex<>::type,flow::Arc<>::type>,
-        typename STree
+        typename STree = graph::STree<Graph>
     >
     void network_simplex_algorithm(Graph G, STree initial)
     {
