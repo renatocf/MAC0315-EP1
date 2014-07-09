@@ -18,6 +18,9 @@
 #ifndef TCC_GRAPH_ARC_DEFINED
 #define TCC_GRAPH_ARC_DEFINED
 
+// Default library
+#include <utility>
+
 // Libraries
 #include "Tags.tcc"
 #include "Vertex.tcc"
@@ -32,10 +35,11 @@ namespace graph
     >class Arc
     {
         public:
-            typedef Arc*                          id_type;
-            typedef Vertex                        vertex_type;
-            typedef Properties                    property_type;
-            typedef typename vertex_type::id_type vertex_id;
+            typedef Vertex                         vertex_type;
+            typedef typename vertex_type::id_type  vertex_id;
+                                                   
+            typedef std::pair<vertex_id,vertex_id> id_type;
+            typedef Properties                     property_type;
             
             const id_type   id;
             vertex_id       beg;
@@ -45,21 +49,22 @@ namespace graph
             explicit
             Arc(const vertex_type& beg, const vertex_type& end, 
                 const property_type properties = property_type{})
-                : id{this}, beg{beg.id}, end{end.id},
+                : id{beg.id,end.id}, beg{beg.id}, end{end.id},
                   properties{properties} {}
             
             explicit
             Arc(const vertex_id beg, const vertex_id end, 
                 const property_type properties = property_type{})
-                : id{this}, beg{beg}, end{end},
+                : id{beg,end}, beg{beg}, end{end},
                   properties{properties} {}
             
             Arc(const Arc& p)
-                : id{this}, beg{p.beg}, end{p.end},
+                : id{p.id}, beg{p.beg}, end{p.end},
                   properties{p.properties} {}
             
             Arc(const Arc&& p)
-                : id{this}, beg{std::move(p.beg)}, end{std::move(p.end)},
+                : id{std::move(p.id)}, beg{std::move(p.beg)}, 
+                  end{std::move(p.end)}, 
                   properties{std::move(p.properties)} {}
             
             Arc& operator=(const Arc& copied)
