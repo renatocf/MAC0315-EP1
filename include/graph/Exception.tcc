@@ -23,8 +23,9 @@
 
 namespace graph 
 {
-    struct id_not_found : public std::exception {};
-    struct id_repeated  : public std::exception {};
+    struct id_not_found  : public std::exception {};
+    struct arc_not_found : public std::exception {};
+    struct id_repeated   : public std::exception {};
 }
 
 #endif
