@@ -646,11 +646,22 @@ namespace graph
                     for(auto& map : this->adj_list)
                     {
                         if(!std::get<0>(map)) continue;
-                        if(std::get<0>(map)->id == vid)
-                            std::get<1>(map).clear();
-                        for(const arc_type& a : std::get<1>(map))
-                            if(a.beg == vid || a.end == vid)
-                                remove_arc(a,*this);
+                        if(Gen::out_position != -1)
+                        {
+                            if(std::get<0>(map)->id == vid)
+                                std::get<1>(map).clear();
+                            for(const arc_type& a : std::get<1>(map))
+                                if(a.beg == vid || a.end == vid)
+                                    remove_arc(a,*this);
+                        }
+                        if(Gen::in_position != -1)
+                        {
+                            if(std::get<0>(map)->id == vid)
+                                std::get<2>(map).clear();
+                            for(const arc_type& a : std::get<2>(map))
+                                if(a.beg == vid || a.end == vid)
+                                    remove_arc(a,*this);
+                        }
                     }
                     std::get<0>(this->adj_list[vid]) = nullptr;
                 }
