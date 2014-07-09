@@ -32,30 +32,30 @@
 namespace graph 
 {
     template<
-        typename Vertex = graph::Vertex<>,
-        typename Arc    = graph::Arc<Vertex>,
-        typename Cycle  = graph::Cycle<Arc>
+        typename Graph,
+        typename Cycle = graph::Cycle<typename Graph::arc_type>
     >class STree
     {
         public:
-            typedef Vertex                   vertex_type;
-            typedef Arc                      arc_type;
-            typedef typename Vertex::id_type vertex_id;
+            typedef typename Graph::arc_type    arc_type;
+            typedef typename Graph::arc_list    arc_list;
+            typedef typename Graph::vertex_id   vertex_id;
+            typedef typename Graph::vertex_type vertex_type;
             
         private:
+            Graph*                 base;
             std::vector<vertex_id> parnt;
             std::vector<int>       depth;
             vertex_id              radix;
             int                    max_depth;
             
         public:        
-            STree(size_t num_vertices, vertex_id radix, 
-                  std::initializer_list<Arc> arcs)
-                : parnt(num_vertices), 
-                  depth(num_vertices,-1), 
-                  radix{}, max_depth{-1}
+            STree(Graph& base, size_t num_vertices, 
+                  vertex_id radix, arc_list arcs)
+                : base{&base}, parnt(num_vertices), 
+                  depth(num_vertices,-1), radix{}, max_depth{-1}
             {
-                for(const Arc& arc : arcs)
+                for(const arc_type& arc : arcs)
                 {
                     if(depth[arc.beg] == -1
                     && depth[arc.end] != -1)
@@ -82,7 +82,7 @@ namespace graph
                 }
             }
             
-            Cycle fundamental_cycle(const Arc& inserted)
+            Cycle fundamental_cycle(const arc_type& inserted)
             {
                 Cycle cycle { inserted };
                 vertex_id l { inserted.beg }; 
@@ -96,9 +96,9 @@ namespace graph
                 // Intermediate arcs 
                 // (when with different depths)
                 for(vertex_id lp = parnt[l]; depth[l] != depth; l = lp)
-                    cycle.push_back( Arc{lp,l} );
+                    cycle.push_back( arc_type{lp,l} );
                 for(vertex_id rp = parnt[r]; depth[r] != depth; r = rp)
-                    cycle.push_front( Arc{rp,r} );
+                    cycle.push_front( arc_type{rp,r} );
                 
                 while(r != l)
                 {
@@ -106,8 +106,8 @@ namespace graph
                     // (when with the same depth)
                     vertex_id lp = parnt[l];
                     vertex_id rp = parnt[r];
-                    cycle.push_back ( Arc{lp,l} );
-                    cycle.push_front( Arc{rp,r} );
+                    cycle.push_back ( arc_type{lp,l} );
+                    cycle.push_front( arc_type{rp,r} );
                     r = rp; l = lp;
                 }
                 
