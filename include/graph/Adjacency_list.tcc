@@ -97,7 +97,7 @@ namespace graph
             >::type type;
             
         public:
-            static const int out_position = 1, in_position = 0;
+            static const int out_position = 1, in_position = -1;
     };
     
     template<
@@ -630,9 +630,8 @@ namespace graph
             
             void add_vertex(const vertex_type& v)
             {
-                std::cerr << "Adding vertex" << std::endl;
                 if(v.id > this->num_vertices())
-                    this->adj_list.resize(v.id);
+                    this->adj_list.resize(v.id+1);
                 std::get<0>(this->adj_list[v.id])
                     = vertex_ptr{new vertex_type{v.id,v}};
                 n_vertices++;
@@ -646,14 +645,14 @@ namespace graph
                 {
                     for(auto& map : this->adj_list)
                     {
+                        if(!std::get<0>(map)) continue;
                         if(std::get<0>(map)->id == vid)
                             std::get<1>(map).clear();
                         for(const arc_type& a : std::get<1>(map))
                             if(a.beg == vid || a.end == vid)
                                 remove_arc(a,*this);
-                        
-                        std::get<0>(this->adj_list[vid]) = nullptr;
                     }
+                    std::get<0>(this->adj_list[vid]) = nullptr;
                 }
                 n_vertices--;
             }
@@ -672,6 +671,7 @@ namespace graph
                 const_arc_iterator ait,ait_end;
                 std::tie(ait,ait_end) = t.arcs();
                 for(; ait != ait_end; ++ait) os << *ait << std::endl;
+                // Return ostream
                 return os;
             }
     };
@@ -714,6 +714,7 @@ namespace graph
         inline typename ADJ_LIST::vertex_type& vertex
         (typename ADJ_LIST::vertex_id vid, ADJ_LIST& g)
         {
+            std::cout << "  Check existence of " << vid << std::endl;
             if(!std::get<0>(g[vid])) throw graph::id_not_found{};
             return *std::get<0>(g[vid]);
         }
@@ -725,6 +726,12 @@ namespace graph
             if(!std::get<0>(g[vid])) throw graph::id_not_found{};
             return *std::get<0>(g[vid]);
         }
+        
+    // Add vertex
+    template<ADJ_TEMPL>
+        inline void
+        add_vertex(typename ADJ_LIST::vertex_id vid, ADJ_LIST& g)
+        { g.add_vertex(typename ADJ_LIST::vertex_type{vid}); }
         
     // Add vertex
     template<ADJ_TEMPL>
@@ -790,14 +797,14 @@ namespace graph
         }};
     
     template<ADJ_TEMPL,int out>
-        struct add_arc_impl<D,V,A,VL,AL,out,0> {
+        struct add_arc_impl<D,V,A,VL,AL,out,-1> {
             static void
             add_arc(typename ADJ_LIST::arc_type a, ADJ_LIST& g) {
                 out_arcs_list(a.beg,g).push_back(a);
         }};
     
     template<ADJ_TEMPL,int in>
-        struct add_arc_impl<D,V,A,VL,AL,0,in> {
+        struct add_arc_impl<D,V,A,VL,AL,-1,in> {
             static void
             add_arc(typename ADJ_LIST::arc_type a, ADJ_LIST& g) {
                 in_arcs_list(a.end,g).push_back(a);
@@ -807,7 +814,6 @@ namespace graph
         inline void
         add_arc(typename ADJ_LIST::arc_type a, ADJ_LIST& g)
         {
-            std::cerr << "Adding arc" << std::endl;
             add_arc_impl<D,V,A,VL,AL,ADJ_LIST::out_position,
                 ADJ_LIST::in_position>::add_arc(a,g);
         }
@@ -832,7 +838,6 @@ namespace graph
              bool ignore_prop, ADJ_LIST& g)
             {
                 // Throws if any vertex does not exist
-                vertex(beg,g); vertex(end,g);
                 remove_arc_impl<D,V,A,VL,AL,out,0>
                     ::remove_arc(beg,end,prop,ignore_prop);
                 remove_arc_impl<D,V,A,VL,AL,0,in>
@@ -841,7 +846,7 @@ namespace graph
         };
     
     template<ADJ_TEMPL,int out>
-        struct remove_arc_impl<D,V,A,VL,AL,out,0> {
+        struct remove_arc_impl<D,V,A,VL,AL,out,-1> {
             static void
             remove_arc(typename ADJ_LIST::vertex_id beg,
                        typename ADJ_LIST::vertex_id end,
@@ -859,7 +864,7 @@ namespace graph
         };
     
     template<ADJ_TEMPL,int in>
-        struct remove_arc_impl<D,V,A,VL,AL,0,in> {
+        struct remove_arc_impl<D,V,A,VL,AL,-1,in> {
             static void
             remove_arc(typename ADJ_LIST::vertex_id beg,
                        typename ADJ_LIST::vertex_id end,
@@ -894,7 +899,7 @@ namespace graph
         {
             remove_arc_impl<D,V,A,VL,AL,
                 ADJ_LIST::out_position,ADJ_LIST::in_position>
-                ::remove_arc(beg,end,{},false,g);
+                ::remove_arc(beg,end,{},true,g);
             g.n_arcs--;
         }
 
