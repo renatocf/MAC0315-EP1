@@ -218,12 +218,14 @@ namespace graph
             typedef Adjacency_list_traits<self> adj_traits;
             typedef typename adj_traits::vertex_id       vertex_id;
             typedef typename adj_traits::vertex_ptr      vertex_ptr;
+            typedef typename adj_traits::vertex_size     vertex_size;
             typedef typename adj_traits::vertex_type     vertex_type;
             typedef typename adj_traits::vertex_list     vertex_list;
             typedef typename adj_traits::vertex_property vertex_property;
             
             typedef typename adj_traits::arc_id          arc_id;
             typedef typename adj_traits::arc_type        arc_type;
+            typedef typename adj_traits::arc_size        arc_size;
             typedef typename adj_traits::arc_list        arc_list;
             typedef typename adj_traits::arc_property    arc_property;
             
@@ -668,8 +670,8 @@ namespace graph
                 n_vertices--;
             }
             
-            size_t num_vertices () const { return this->n_vertices; }
-            size_t num_arcs     () const { return this->n_arcs;     }
+            vertex_size num_vertices() const { return this->n_vertices; }
+            arc_size    num_arcs()     const { return this->n_arcs;     }
             
             friend std::ostream&
             operator<<(std::ostream& os, const Adjacency_list& t)
@@ -694,16 +696,18 @@ namespace graph
         Adjacency_list<Directed,Vertex,Arc,Vertex_list,Arc_list>>
     {
         typedef Directed directed;
-            
+        
         typedef Vertex vertex_type;
         typedef std::shared_ptr<Vertex> vertex_ptr;
         typedef typename vertex_type::id_type vertex_id;
+        typedef typename vertex_type::size_type vertex_size;
         typedef typename vertex_type::property_type vertex_property;
         typedef typename container_gen<Vertex_list,vertex_type>::type
                 vertex_list;
         
         typedef Arc arc_type;
         typedef typename arc_type::id_type arc_id;
+        typedef typename arc_type::size_type arc_size;
         typedef typename arc_type::property_type arc_property;
         typedef typename container_gen<Arc_list,arc_type>::type
                 arc_list;
@@ -720,12 +724,16 @@ namespace graph
         inline typename ADJ_LIST::vertex_iterator_pair
         vertices(ADJ_LIST& g) { return g.vertices(); }
     
+    // Number of vertices
+    template<ADJ_TEMPL>
+        inline typename ADJ_LIST::vertex_size
+        num_vertices(const ADJ_LIST& g) { return g.num_vertices(); }
+    
     // Get vertex
     template<ADJ_TEMPL>
         inline typename ADJ_LIST::vertex_type& vertex
         (typename ADJ_LIST::vertex_id vid, ADJ_LIST& g)
         {
-            std::cout << "  Check existence of " << vid << std::endl;
             if(!std::get<0>(g[vid])) throw graph::id_not_found{};
             return *std::get<0>(g[vid]);
         }
@@ -767,6 +775,11 @@ namespace graph
     template<ADJ_TEMPL>
         inline typename ADJ_LIST::arc_iterator_pair
         arcs(ADJ_LIST& g) { return g.arcs(); }
+    
+    // Number of arcs
+    template<ADJ_TEMPL>
+        inline typename ADJ_LIST::arc_size
+        num_arcs(const ADJ_LIST& g) { return g.num_arcs(); }
     
     // Get arc
     template<ADJ_TEMPL>

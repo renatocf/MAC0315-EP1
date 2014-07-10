@@ -15,51 +15,30 @@
 /* and limitations under the License.                                 */
 /**********************************************************************/
 
-#ifndef TCC_GRAPH_VERTEX_DEFINED
-#define TCC_GRAPH_VERTEX_DEFINED
+#ifndef TCC_GRAPH_TRAITS_DEFINED
+#define TCC_GRAPH_TRAITS_DEFINED
 
-// Libraries
-#include "Properties.tcc"
-
-namespace graph
+namespace graph 
 {
-    template<
-        typename Properties = no_property
-    >struct Vertex
+    template<typename Graph>
+    struct graph_traits
     {
-        typedef unsigned long id_type;
-        typedef Properties    property_type;
-        typedef size_t        size_type;
-        
-        id_type       id;
-        property_type properties;
-        
-        explicit
-        Vertex(const id_type id, 
-               property_type properties = property_type{})
-            : id{id}, properties{properties} {}
-        
-        explicit
-        Vertex(const id_type id, const Vertex& prototype)
-            : id{id}, properties{prototype.properties} {}
-        
-        bool operator==(const Vertex& v) const
-        {
-            return this->id == v.id 
-                && this->properties == v.properties;
-        }
-        
-        bool operator!=(const Vertex& v) const
-        {
-            return !operator==(v);
-        }
-        
-        friend std::ostream& 
-        operator<<(std::ostream& os, const Vertex& v)
-        {
-            os << "{" << v.id << ", " << v.properties << "}";
-            return os;
-        }
+        typedef typename Graph
+            ::vertex_iterator       vertex_iterator;
+        typedef typename Graph
+            ::const_vertex_iterator const_vertex_iterator;
+        typedef typename Graph      
+            ::arc_iterator          arc_iterator;
+        typedef typename Graph      
+            ::const_arc_iterator    const_arc_iterator;
+        typedef typename Graph          
+            ::out_iterator          out_arcs_iterator;
+        typedef typename Graph           
+            ::const_out_iterator    const_out_arcs_iterator;
+        typedef typename Graph           
+            ::in_iterator           in_arcs_iterator;
+        typedef typename Graph           
+            ::const_in_iterator     const_in_arcs_iterator;
     };
 }
 

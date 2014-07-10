@@ -20,6 +20,7 @@
 
 // Default libraries
 #include <deque>
+#include <iostream>
 
 // Libraries
 #include "Arc.tcc"

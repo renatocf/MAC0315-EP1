@@ -20,6 +20,7 @@
 
 // Default libraries
 #include <iomanip>
+#include <limits>
 
 // Libraries
 #include "Vertex.tcc"
@@ -37,6 +38,12 @@ namespace flow
         typename Requirement = unsigned int
     >struct Arc_flow
     {
+        typedef Cost        cost_type;
+        typedef Flux        flux_type;
+        typedef Capacity    capacity_type;
+        typedef Requirement requirement_type;
+        typedef Properties  property_type;
+        
         Cost        cost;
         Flux        flux;
         Capacity    capacity;
@@ -46,7 +53,8 @@ namespace flow
         Arc_flow(
             Cost k = Cost{}, Flux f = Flux{}, Capacity c = Capacity{}, 
             Requirement r = Requirement{}, Properties p = Properties{})
-            : cost{k}, flux{f}, capacity{c}, 
+            : cost{k}, flux{f},
+              capacity{std::numeric_limits<Capacity>::max()},
               requirement{r}, properties{p} {}
         
         bool operator==(const Arc_flow& f) const
@@ -67,11 +75,14 @@ namespace flow
         operator<<(std::ostream& os, const Arc_flow& f)
         {
             os << "{ ";
-                           os << "cost:"          << f.cost;
-                           os << ", flux:"        << f.flux;
-            if(f.capacity) os << ", capacity:"    << f.capacity; 
-            if(f.flux)     os << ", requirement:" << f.flux;
-                           os << ", properties:"  << f.properties;
+                              os << "cost:"          << f.cost;
+                              os << ", flux:"        << f.flux;
+            if(f.capacity == std::numeric_limits<Capacity>::max())
+                              os << ", capacity:inf";
+            else if(f.capacity)
+                              os << ", capacity:"    << f.capacity; 
+            if(f.requirement) os << ", requirement:" << f.flux;
+                              os << ", properties:"  << f.properties;
             os << " }";
             return os;
         }

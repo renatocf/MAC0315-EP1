@@ -75,30 +75,38 @@ namespace transport
             std::tie(oit,oit_end) = out_arcs(producer_id,transport_net);
             for(; oit != oit_end; ++oit) 
                 artificial[oit->end] = false;
-
+            
+            artificial[producer_id] = false;
+            
+            for(bool b : artificial)
+                std::cout << b << " " << std::endl;
+            
             digraph extra_net { transport_net };
-
+            
             digraph::arc_iterator ait, ait_end;
-            std::tie(ait,ait_end) = arcs(transport_net);
-
+            std::tie(ait,ait_end) = arcs(extra_net);
+            
             // Any real arc has cost 0
-            for(; ait != ait_end; ++ait) 
+            for(; ait != ait_end; ++ait)
                 ait->properties.cost = 0;
-
+            std::cout << transport_net << std::endl;
+            std::cout << extra_net << std::endl;
+            
             // Artificial arcs have cost 1
             for(unsigned int i = 0; i < artificial.size(); ++i)
                 if(artificial[i])
                     graph::add_arc(arc{producer_id,i,{1}},extra_net);
-
+            std::cout << extra_net << std::endl;
+            
             // All flux go by the arc producer->consumer
             graph::arc(producer_id,consumer_id,extra_net).
                 properties.flux = product;
-
+            std::cout << extra_net << std::endl;
+            
             stree initial { 
-                extra_net,extra_net.num_vertices(),
-                producer_id,out_arcs_list(producer_id,extra_net)
+                extra_net,out_arcs_list(producer_id,extra_net)
             };
-
+            
             graph::flow::
             network_simplex_algorithm<digraph>(extra_net,initial);
         }

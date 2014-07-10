@@ -40,44 +40,48 @@ namespace graph
                                                    
             typedef std::pair<vertex_id,vertex_id> id_type;
             typedef Properties                     property_type;
+            typedef size_t                         size_type;
             
-            const id_type   id;
-            vertex_id       beg;
-            vertex_id       end;
-            property_type   properties;
+            id_type       id;
+            vertex_id&    beg, end;
+            property_type properties;
+            
+            explicit
+            Arc(const id_type& base_id,
+                const property_type properties = property_type{})
+                : id{base_id}, beg{id.first}, end{id.second},
+                  properties{properties} {}
             
             explicit
             Arc(const vertex_type& beg, const vertex_type& end, 
                 const property_type properties = property_type{})
-                : id{beg.id,end.id}, beg{beg.id}, end{end.id},
+                : id{beg.id,end.id}, beg{id.first}, end{id.second},
                   properties{properties} {}
             
             explicit
             Arc(const vertex_id beg, const vertex_id end, 
                 const property_type properties = property_type{})
-                : id{beg,end}, beg{beg}, end{end},
+                : id{beg,end}, beg{id.first}, end{id.second},
                   properties{properties} {}
             
             Arc(const Arc& p)
-                : id{p.id}, beg{p.beg}, end{p.end},
+                : id{p.id}, beg{id.first}, end{id.second},
                   properties{p.properties} {}
             
             Arc(const Arc&& p)
-                : id{std::move(p.id)}, beg{std::move(p.beg)}, 
-                  end{std::move(p.end)}, 
-                  properties{std::move(p.properties)} {}
+                : id{std::move(p.id)}, beg{id.first}, 
+                  end{id.second}, properties{std::move(p.properties)} {}
             
             Arc& operator=(const Arc& copied)
             {
-                this->beg = copied.beg; this->end = copied.end;
-                this->properties = std::move(copied.properties);
+                this->id = copied.id;
+                this->properties = copied.properties;
                 return *this;
             }
 
             Arc& operator=(const Arc&& moved)
             {
-                this->beg = std::move(moved.beg); 
-                this->end = std::move(moved.end);
+                this->id = std::move(moved.id); 
                 this->properties = std::move(moved.properties);
                 return *this;
             }
@@ -85,8 +89,7 @@ namespace graph
             // Comparison operators
             bool operator==(const Arc& a) const
             {
-                return this->beg        == a.beg
-                    && this->end        == a.end
+                return this->id         == a.id
                     && this->properties == a.properties;
             }
             
