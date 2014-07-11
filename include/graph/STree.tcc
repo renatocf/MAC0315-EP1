@@ -57,35 +57,7 @@ namespace graph
             std::vector<int>       depth;
             int                    max_depth;
             
-            arc_list&& swap_arcs(const arc_type& out_arc,
-                                 const arc_type& in_arc, 
-                                 const arc_list& pattern)
-            {
-                for(auto& a : pattern)
-                    std::cerr << a << std::endl;
-                
-                typename arc_list::const_iterator 
-                    ait = std::begin(pattern);
-                typename arc_list::const_iterator 
-                    ait_end = std::end(pattern);
-                
-                arc_list modified;
-                for(; ait != ait_end; ++ait)
-                    if(*ait == out_arc) modified.push_back(*ait);
-                
-                modified.push_back(in_arc);
-                
-                for(auto& a : modified)
-                    std::cerr << a << std::endl;
-                
-                return std::move(modified);
-            }
-            
-        public:        
-            STree(graph_type& graph, arc_list arcs)
-                : graph{&graph}, n_vertices{graph.num_vertices()},
-                  arcs{arcs}, parnt(n_vertices,vertex_id{}), 
-                  depth(n_vertices,0), max_depth{-1}
+            void calculate_parents()
             {
                 std::vector<bool> has_parnt(n_vertices,false);
                 for(vertex_id id : this->parnt) this->parnt[id] = id;
@@ -107,9 +79,12 @@ namespace graph
                         has_parnt[arc.end] = true;
                     }
                 }
-                    
+            }
+            
+            void calculate_depth()
+            {
                 typename Graph::vertex_iterator vit, vit_end;
-                std::tie(vit,vit_end) = vertices(graph);
+                std::tie(vit,vit_end) = vertices(*graph);
                 for(; vit != vit_end; ++vit)
                 {
                     vertex_id id = vit->id;
@@ -118,12 +93,50 @@ namespace graph
                 }
             }
             
+        public:        
+            STree(graph_type& graph, arc_list arcs)
+                : graph{&graph}, n_vertices{graph.num_vertices()},
+                  arcs{arcs}, parnt(n_vertices,vertex_id{}), 
+                  depth(n_vertices,0), max_depth{-1}
+            { this->calculate_parents(); this->calculate_depth(); }
+            
             STree(const arc_type& out_arc, const arc_type& in_arc,
                   const STree& pattern)
                 : graph{pattern.graph}, n_vertices{pattern.n_vertices},
-                  arcs{swap_arcs(out_arc,in_arc,pattern.arcs)}, 
-                  parnt{n_vertices}, depth(n_vertices,-1), max_depth{-1}
-            {}
+                  arcs{}, parnt(n_vertices,vertex_id{}), 
+                  depth(n_vertices,0), max_depth{-1}
+            {
+                std::cerr << "OLD ARCS" << std::endl;
+                for(auto& a : pattern.arcs)
+                    std::cerr << a << std::endl;
+                
+                typename arc_list::const_iterator 
+                    ait = std::begin(pattern.arcs);
+                typename arc_list::const_iterator 
+                    ait_end = std::end(pattern.arcs);
+                
+                arc_list modified;
+                for(; ait != ait_end; ++ait)
+                    if(*ait != out_arc) this->arcs.push_back(*ait);
+                
+                this->arcs.push_back(in_arc);
+                
+                std::cerr << "NEW ARCS" << std::endl;
+                for(auto& a : this->arcs)
+                    std::cerr << a << std::endl;
+                
+                this->calculate_parents(); 
+                std::cerr << "Parent: ";
+                for(auto& id : this->parnt)
+                    std::cerr << id << " ";
+                std::cerr << std::endl;
+                
+                this->calculate_depth();
+                std::cerr << "Depth: ";
+                for(auto& d : this->depth)
+                    std::cerr << d << " ";
+                std::cerr << std::endl;
+            }
             
             graph_type& base_graph() { return *graph; }
             const graph_type& base_graph() const { return *base_graph; }
@@ -175,45 +188,7 @@ namespace graph
                 
                 return cycle;
             }
-                
-                // id_vertex lowest, higher;
-                // if(this->parnt[out_arc.beg] == out_arc.end)
-                // { lowest = out_arc.end; higher = out_arc.beg; }
-                // else if(this->parnt[out_arc.end] == out_arc.beg)
-                // { lowest = out_arc.beg; higher = out_arc.end; }
-                // else throw arc_not_found{};
-                //
-                // // Check which vertex is in the subtree that 
-                // // will be destroyed. 
-                // // must be swaped.
-                // vertex_id[] ids = { in_arc.beg, in_arc.end };
-                // for(vertex_id vid : ids)
-                // {
-                //     vertex_id id = vid;
-                //     while(this->parnt[id] != lowest_arc;
-                //        || this->parnt[id] != id) this->parnt[id] = id;
-                //     
-                //     if(this->parnt[id] == lowest_arc)
-                //     {
-                //         vertex_id b_id = vid, m_id = this->parnt[vid],
-                //                   e_id = this->parnt[this->parnt[vid]];
-                //         
-                //         // Invert direction of all arcs untill 
-                //         // the lowest vertex of the removed arc 
-                //         // (which lost the connection with its parent)
-                //         while(m_id != lowest_arc);
-                //         {
-                //             this->parnt[m_id] = b_id;
-                //             b_id = m_id; m_id = e_id; 
-                //             e_id = this->parnt[e_id];
-                //         }
-                //         
-                //         break; // Tree corrected;
-                //     }
-                // } // end for
-                // this->parnt[lowest] = higher;
-                // // Correct depth...
-                
+            
             vertex_size num_vertices() const 
             { return this->n_vertices; }
             

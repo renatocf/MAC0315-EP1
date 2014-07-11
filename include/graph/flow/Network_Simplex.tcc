@@ -45,12 +45,15 @@ namespace flow
         
         prices_calculator(stree_type st)
             : price(num_vertices(st),std::numeric_limits<cost_type>::max())
-        {}
+        {std::cerr << "Num_vertices st: " << num_vertices(st) << std::endl;}
         
         void end_visits(vertex_id id, stree_type st)
         {
+            std::cerr << "Visiting end arc ";
             arc_type  arc  = edge(id,parent(id,st),st);
+            std::cerr << arc;
             cost_type cost = arc.properties.cost;
+            std::cerr << "..." << std::endl;
             
             price[id] = price[parent(id,st)]
                       + (arc.end == id ? cost : -cost);
@@ -58,13 +61,21 @@ namespace flow
         
         bool visit_parent_cond(vertex_id id, stree_type st)
         { 
+            std::cerr << "Making comparison..." << std::endl;
             return price[parent(id,st)] ==
                    std::numeric_limits<cost_type>::max();
         }
         
-        void radix(vertex_id id, stree_type st) { price[id] = 0; }
+        void radix(vertex_id id, stree_type st) 
+        { 
+            std::cerr << "Visiting radix..." << std::endl;
+            price[id] = 0; 
+        }
         
-        void start_vertex  (vertex_id id, stree_type st) {}
+        void start_vertex  (vertex_id id, stree_type st) 
+        {
+            std::cerr << "Starting vertices..." << std::endl;
+        }
         void before_parent (vertex_id id, stree_type st) {}
         void after_parent  (vertex_id id, stree_type st) {}
     };
@@ -73,12 +84,8 @@ namespace flow
         typename Graph = graph::Adjacency_list
             <directed,flow::Vertex<>::type,flow::Arc<>::type>,
         typename STree = graph::STree<Graph>
-    >void network_simplex_algorithm(Graph g, STree initial)
+    >void network_simplex_algorithm(Graph& g, STree& initial)
     {
-        // Step 1: Find prices (y)
-        std::vector<int> y ( graph::num_vertices(g), 
-                             std::numeric_limits<int>::max() );
-        
         typedef typename Graph::vertex_id vertex_id;
         typedef typename Graph::arc_type arc_type;
         typedef typename Graph::arc_property
@@ -89,13 +96,19 @@ namespace flow
         typedef typename graph_traits<Graph>
             ::arc_iterator arc_iterator;
         
+        std::cerr << ">>> STARTING SIMPLEX ITERATION <<<" << std::endl;
+        
+        // Step 1: Find prices (y)
+        std::cerr << ">> FINDING PRICES <<" << std::endl;
         prices_calculator<STree> prices{initial};
+        std::cerr << "> SEARCH <" << std::endl;
         stree_search(prices,initial);
         
-        for(auto& p : prices.price) std::cout << p << " "; 
-        std::cout << std::endl;
+        for(auto& p : prices.price) std::cerr << p << " "; 
+        std::cerr << std::endl;
 
         // Step 2: Find (i,j) : y[i] + c[i,j] < y[j]
+        std::cerr << ">> FINDING IN_ARC <<" << std::endl;
         arc_iterator ait, ait_end;
         for(std::tie(ait,ait_end) = arcs(g); ait != ait_end; ++ait)
         {
@@ -103,16 +116,19 @@ namespace flow
                < prices.price[ait->end]) break;
         }
 
-        // if(ait == ait_end) TERMINOU!!!
+        if(ait == ait_end) { std::cerr << ">> FINISH! <<" << std::endl;
+                             return; }
         arc_type in_arc { *ait };
-        std::cout << "IN_ARC: " << in_arc << std::endl;
+        std::cerr << "IN_ARC: " << in_arc << std::endl;
 
         // Step 3: Find fundamental cycle
+        std::cerr << ">> FINDING CYCLE <<" << std::endl;
         cycle_type cycle { initial.fundamental_cycle(in_arc) };
         for(arc_type& a : cycle)
-            std::cout << a << std::endl;
+            std::cerr << a << std::endl;
 
         // Step 4: Find arc to be removed
+        std::cerr << ">> FINDING OUT_ARC <<" << std::endl;
         flux_type min_delta { cycle.front().properties.capacity };
         arc_type  out_arc   { cycle.front()                     };
         vertex_id pivot     { cycle.front().beg                 };
@@ -127,7 +143,7 @@ namespace flow
             if(delta < min_delta) { min_delta = delta; out_arc = arc; }
             pivot = arc.end;
         }
-        std::cout << min_delta << std::endl;
+        std::cerr << min_delta << std::endl;
 
         pivot = cycle.front().beg;
         for(arc_type& arc : cycle)
@@ -135,14 +151,14 @@ namespace flow
             if(pivot == arc.beg) arc.properties.flux += min_delta;
             if(pivot == arc.end) arc.properties.flux -= min_delta;
         }
-        std::cout << "OUT_ARC: " << in_arc << std::endl;
+        std::cerr << "OUT_ARC: " << out_arc << std::endl;
 
         if(out_arc == in_arc)
             /*return*/ network_simplex_algorithm(g, initial);
         else
         {
-            // STree modified { out_arc,in_arc,initial };
-            // network_simplex_algorithm(g, modified);
+            STree modified { out_arc,in_arc,initial };
+            network_simplex_algorithm(g, modified);
         }
     }
 }}
