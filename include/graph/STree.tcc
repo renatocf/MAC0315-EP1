@@ -65,13 +65,13 @@ namespace graph
                 {
                     if(has_parnt[arc.beg] && !has_parnt[arc.end])
                     {
-                        parnt[arc.beg] = arc.end;
-                        has_parnt[arc.beg] = true;
+                        parnt[arc.end] = arc.beg;
+                        has_parnt[arc.end] = true;
                     }
                     else if(!has_parnt[arc.beg] && has_parnt[arc.end])
                     {
-                        parnt[arc.end] = arc.beg;
-                        has_parnt[arc.end] = true;
+                        parnt[arc.beg] = arc.end;
+                        has_parnt[arc.beg] = true;
                     }
                     else if(!has_parnt[arc.beg] && !has_parnt[arc.end])
                     {
@@ -106,6 +106,8 @@ namespace graph
                   arcs{}, parnt(n_vertices,vertex_id{}), 
                   depth(n_vertices,0), max_depth{-1}
             {
+                std::cerr << "STree OUT_ARC" << out_arc;
+                std::cerr << "STree IN_ARC " << in_arc;
                 std::cerr << "OLD ARCS" << std::endl;
                 for(auto& a : pattern.arcs)
                     std::cerr << a << std::endl;
@@ -117,7 +119,13 @@ namespace graph
                 
                 arc_list modified;
                 for(; ait != ait_end; ++ait)
-                    if(*ait != out_arc) this->arcs.push_back(*ait);
+                {
+                    std::cerr << "Out arc is: " << out_arc << std::endl;
+                    std::cerr << "This arc is: " << *ait << std::endl;
+                    if(*ait != out_arc) { this->arcs.push_back(*ait);
+                                          std::cerr << "Will put!";
+                                          std::cerr << std::endl; }
+                }
                 
                 this->arcs.push_back(in_arc);
                 

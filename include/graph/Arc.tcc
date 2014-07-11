@@ -74,7 +74,7 @@ namespace graph
             
             Arc& operator=(const Arc& copied)
             {
-                this->id = copied.id;
+                this->id  = copied.id;
                 this->properties = copied.properties;
                 return *this;
             }
@@ -89,7 +89,8 @@ namespace graph
             // Comparison operators
             bool operator==(const Arc& a) const
             {
-                return this->id         == a.id
+                return this->beg        == a.beg
+                    && this->end        == a.end
                     && this->properties == a.properties;
             }
             

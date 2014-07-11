@@ -57,13 +57,18 @@ namespace flow
             
             price[id] = price[parent(id,st)]
                       + (arc.end == id ? cost : -cost);
+            
+            std::cerr << "Prices: ";
+            for(auto& p : price) std::cerr << p << " ";
+            std::cerr << std::endl;
         }
         
         bool visit_parent_cond(vertex_id id, stree_type st)
         { 
-            std::cerr << "Making comparison..." << std::endl;
-            return price[parent(id,st)] ==
-                   std::numeric_limits<cost_type>::max();
+            bool b =  price[parent(id,st)] ==
+                      std::numeric_limits<cost_type>::max();
+            if(b) std::cerr << "== RECURSIVE CALL == ";
+            return b;
         }
         
         void radix(vertex_id id, stree_type st) 
@@ -72,7 +77,7 @@ namespace flow
             price[id] = 0; 
         }
         
-        void start_vertex  (vertex_id id, stree_type st) 
+        void start_vertex(vertex_id id, stree_type st) 
         {
             std::cerr << "Starting vertices..." << std::endl;
         }
@@ -84,7 +89,7 @@ namespace flow
         typename Graph = graph::Adjacency_list
             <directed,flow::Vertex<>::type,flow::Arc<>::type>,
         typename STree = graph::STree<Graph>
-    >void network_simplex_algorithm(Graph& g, STree& initial)
+    >STree network_simplex_algorithm(Graph& g, STree& initial)
     {
         typedef typename Graph::vertex_id vertex_id;
         typedef typename Graph::arc_type arc_type;
@@ -104,6 +109,7 @@ namespace flow
         std::cerr << "> SEARCH <" << std::endl;
         stree_search(prices,initial);
         
+        std::cerr << "Prices: ";
         for(auto& p : prices.price) std::cerr << p << " "; 
         std::cerr << std::endl;
 
@@ -117,7 +123,7 @@ namespace flow
         }
 
         if(ait == ait_end) { std::cerr << ">> FINISH! <<" << std::endl;
-                             return; }
+                             return initial; }
         arc_type in_arc { *ait };
         std::cerr << "IN_ARC: " << in_arc << std::endl;
 
@@ -136,29 +142,37 @@ namespace flow
         {
             flux_type delta;
             if(pivot == arc.beg)
+            {
                 delta = arc.properties.capacity - arc.properties.flux;
+                pivot = arc.end;
+            }
             else // pivot == arc.end
+            {
                 delta = arc.properties.flux - arc.properties.requirement;
+                pivot = arc.beg;
+            }
 
             if(delta < min_delta) { min_delta = delta; out_arc = arc; }
-            pivot = arc.end;
         }
         std::cerr << min_delta << std::endl;
 
         pivot = cycle.front().beg;
         for(arc_type& arc : cycle)
         {
-            if(pivot == arc.beg) arc.properties.flux += min_delta;
-            if(pivot == arc.end) arc.properties.flux -= min_delta;
+            if(pivot == arc.beg) 
+            { arc.properties.flux += min_delta; pivot = arc.end; }
+            if(pivot == arc.end) 
+            { arc.properties.flux -= min_delta; pivot = arc.beg; }
+            
         }
         std::cerr << "OUT_ARC: " << out_arc << std::endl;
 
         if(out_arc == in_arc)
-            /*return*/ network_simplex_algorithm(g, initial);
+            return network_simplex_algorithm(g, initial);
         else
         {
             STree modified { out_arc,in_arc,initial };
-            network_simplex_algorithm(g, modified);
+            return network_simplex_algorithm(g, modified);
         }
     }
 }}
