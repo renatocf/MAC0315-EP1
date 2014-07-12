@@ -143,28 +143,39 @@ namespace flow
             flux_type delta;
             if(pivot == arc.beg)
             {
+                // Arc in cycle direction
                 delta = arc.properties.capacity - arc.properties.flux;
                 pivot = arc.end;
             }
             else // pivot == arc.end
             {
+                // Arc against cycle direction
                 delta = arc.properties.flux - arc.properties.requirement;
                 pivot = arc.beg;
             }
 
             if(delta < min_delta) { min_delta = delta; out_arc = arc; }
         }
-        std::cerr << min_delta << std::endl;
+        std::cerr << "MIN_DELTA: " << min_delta << std::endl;
 
         pivot = cycle.front().beg;
         for(arc_type& arc : cycle)
         {
-            if(pivot == arc.beg) 
-            { arc.properties.flux += min_delta; pivot = arc.end; }
-            if(pivot == arc.end) 
-            { arc.properties.flux -= min_delta; pivot = arc.beg; }
-            
+            if(pivot == arc.beg)
+            {
+                graph::arc(arc.beg,arc.end,g).properties.flux += min_delta; 
+                pivot = arc.end;
+            }
+            if(pivot == arc.end)
+            { 
+                graph::arc(arc.beg,arc.end,g).properties.flux -= min_delta; 
+                pivot = arc.beg; 
+            }
         }
+        
+        std::cerr << "PRINTING TREE: " << std::endl;
+        std::cerr << g << out_arc << std::endl;
+        
         std::cerr << "OUT_ARC: " << out_arc << std::endl;
 
         if(out_arc == in_arc)

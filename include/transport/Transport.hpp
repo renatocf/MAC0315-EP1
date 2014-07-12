@@ -22,20 +22,25 @@
 #include <fstream>
 
 // Libraries
-#include "graph.tcc"
+#include "graph/STree.tcc"
+#include "graph/stree_search.tcc"
+#include "graph/Adjacency_list.tcc"
+#include "graph/flow/Network_Simplex.tcc"
 
 namespace transport 
 {
     class Transport
     {
-        typedef graph::flow::Vertex<>::type vertex;
-        typedef graph::flow::Arc<>::type    arc;
-        typedef typename vertex::id_type    vertex_id;
+        typedef graph::flow::Vertex<>::type   vertex_type;
+        typedef graph::flow::Arc<>::type      arc_type;
+        typedef typename vertex_type::id_type vertex_id;
         
-        typedef // Graph to describe problem
-        graph::Adjacency_list<graph::directed,vertex,arc> digraph;
+        typedef graph // Graph to describe problem
+        ::Adjacency_list<graph::directed,vertex_type,arc_type> digraph;
         
-        typedef graph::STree<digraph> stree; // Spanning tree
+        typedef graph::STree<digraph> stree_type; // Spanning tree
+        
+        typedef digraph::arc_list arc_list;
         
         digraph transport_net;
         size_t n_nodes; int product;
@@ -55,14 +60,17 @@ namespace transport
             // Create network transport
             this->transport_net = digraph{n_nodes};
             
-            vertex& producer = graph::vertex(producer_id,transport_net);
+            vertex_type& producer 
+                = graph::vertex(producer_id,transport_net);
             producer.properties.demand = -product;
             
-            vertex& consumer = graph::vertex(consumer_id,transport_net);
+            vertex_type& consumer 
+                = graph::vertex(consumer_id,transport_net);
             consumer.properties.demand = product;
             
             while(input >> source >> target >> cost)
-                graph::add_arc(arc{source,target,{cost}},transport_net);
+                graph::add_arc(arc_type{source,target,{cost}},
+                               transport_net);
         }
         
         //std::pair<int,std::vector<int>> 
@@ -72,7 +80,8 @@ namespace transport
             ( transport_net.num_vertices(), true );
 
             digraph::out_iterator oit, oit_end;
-            std::tie(oit,oit_end) = out_arcs(producer_id,transport_net);
+            std::tie(oit,oit_end)
+                = graph::out_arcs(producer_id,transport_net);
             for(; oit != oit_end; ++oit) 
                 artificial[oit->end] = false;
             
@@ -95,7 +104,7 @@ namespace transport
             // Artificial arcs have cost 1
             for(unsigned int i = 0; i < artificial.size(); ++i)
                 if(artificial[i])
-                    graph::add_arc(arc{producer_id,i,{1}},extra_net);
+                    graph::add_arc(arc_type{producer_id,i,{1}},extra_net);
             std::cout << extra_net << std::endl;
             
             // All flux go by the arc producer->consumer
@@ -103,12 +112,30 @@ namespace transport
                 properties.flux = product;
             std::cout << extra_net << std::endl;
             
-            stree initial { 
+            stree_type pseudo { 
                 extra_net,out_arcs_list(producer_id,extra_net)
             };
             
-            graph::flow::
-            network_simplex_algorithm<digraph>(extra_net,initial);
+            stree_type candidate { 
+                graph::flow::network_simplex_algorithm(extra_net,pseudo)
+            };
+            
+            for(arc_type& c : candidate.arcs)
+                if(c.beg == producer_id && artificial[c.end])
+                {
+                    std::cerr << "Impossible problem!!" << std::endl;
+                    return;
+                }
+            
+            arc_list list;
+            for(arc_type& c : candidate.arcs)
+                list.push_back(graph::arc(c.beg,c.end,transport_net));
+            stree_type initial { transport_net, list };
+            
+            std::cerr << std::endl << "Simplex phase 2" << std::endl;
+            std::cerr << transport_net << std::endl;
+            graph::flow
+            ::network_simplex_algorithm(transport_net,initial);
         }
         
         friend std::ostream& 

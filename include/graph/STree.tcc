@@ -49,10 +49,11 @@ namespace graph
             typedef typename graph_type::vertex_size vertex_size;
             typedef typename graph_type::vertex_type vertex_type;
             
+            arc_list               arcs;
+            
         private:
             graph_type* const      graph;
             vertex_size            n_vertices;
-            arc_list               arcs;
             std::vector<vertex_id> parnt;
             std::vector<int>       depth;
             int                    max_depth;
@@ -95,15 +96,17 @@ namespace graph
             
         public:        
             STree(graph_type& graph, arc_list arcs)
-                : graph{&graph}, n_vertices{graph.num_vertices()},
-                  arcs{arcs}, parnt(n_vertices,vertex_id{}), 
+                : arcs{arcs}, graph{&graph}, 
+                  n_vertices{graph.num_vertices()},
+                  parnt(n_vertices,vertex_id{}), 
                   depth(n_vertices,0), max_depth{-1}
             { this->calculate_parents(); this->calculate_depth(); }
             
             STree(const arc_type& out_arc, const arc_type& in_arc,
                   const STree& pattern)
-                : graph{pattern.graph}, n_vertices{pattern.n_vertices},
-                  arcs{}, parnt(n_vertices,vertex_id{}), 
+                : arcs{}, graph{pattern.graph}, 
+                  n_vertices{pattern.n_vertices},
+                  parnt(n_vertices,vertex_id{}), 
                   depth(n_vertices,0), max_depth{-1}
             {
                 std::cerr << "STree OUT_ARC" << out_arc;
