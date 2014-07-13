@@ -113,6 +113,8 @@ namespace flow
         for(auto& p : prices.price) std::cerr << p << " "; 
         std::cerr << std::endl;
 
+        std::cerr << ">> END OF STEP 1 <<" << std::endl;
+        std::cerr << g << std::endl;
         // Step 2: Find (i,j) : y[i] + c[i,j] < y[j]
         std::cerr << ">> FINDING IN_ARC <<" << std::endl;
         arc_iterator ait, ait_end;
@@ -127,12 +129,17 @@ namespace flow
         arc_type in_arc { *ait };
         std::cerr << "IN_ARC: " << in_arc << std::endl;
 
+        std::cerr << ">> END OF STEP 2 <<" << std::endl;
+        std::cerr << g << std::endl;
         // Step 3: Find fundamental cycle
         std::cerr << ">> FINDING CYCLE <<" << std::endl;
+        std::cerr << initial << std::endl;
         cycle_type cycle { initial.fundamental_cycle(in_arc) };
         for(arc_type& a : cycle)
             std::cerr << a << std::endl;
 
+        std::cerr << ">> END OF STEP 3 <<" << std::endl;
+        std::cerr << g << std::endl;
         // Step 4: Find arc to be removed
         std::cerr << ">> FINDING OUT_ARC <<" << std::endl;
         flux_type min_delta { cycle.front().properties.capacity };
@@ -153,7 +160,7 @@ namespace flow
                 delta = arc.properties.flux - arc.properties.requirement;
                 pivot = arc.beg;
             }
-
+            std::cerr << "DELTA: " << delta << std::endl;
             if(delta < min_delta) { min_delta = delta; out_arc = arc; }
         }
         std::cerr << "MIN_DELTA: " << min_delta << std::endl;
@@ -161,30 +168,30 @@ namespace flow
         pivot = cycle.front().beg;
         for(arc_type& arc : cycle)
         {
+            std::cerr << "Running throug cycle: " << arc << std::endl;
             if(pivot == arc.beg)
             {
+                std::cerr << "Is direct arc! " << arc << std::endl;
                 graph::arc(arc.beg,arc.end,g).properties.flux += min_delta; 
+                std::cerr << "New flux: " << arc << std::endl;
                 pivot = arc.end;
             }
-            if(pivot == arc.end)
+            else // pivot == arc.end
             { 
+                std::cerr << "Is reverse arc! " << arc << std::endl;
                 graph::arc(arc.beg,arc.end,g).properties.flux -= min_delta; 
+                std::cerr << "New flux: " << arc << std::endl;
                 pivot = arc.beg; 
             }
         }
         
-        std::cerr << "PRINTING TREE: " << std::endl;
-        std::cerr << g << out_arc << std::endl;
+        std::cerr << ">> END OF STEP 4 <<" << std::endl;
+        std::cerr << g << std::endl;
         
         std::cerr << "OUT_ARC: " << out_arc << std::endl;
-
-        if(out_arc == in_arc)
-            return network_simplex_algorithm(g, initial);
-        else
-        {
-            STree modified { out_arc,in_arc,initial };
-            return network_simplex_algorithm(g, modified);
-        }
+        
+        STree modified { out_arc, in_arc, initial };
+        return network_simplex_algorithm(g, modified);
     }
 }}
 

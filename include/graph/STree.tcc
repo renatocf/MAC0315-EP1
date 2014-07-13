@@ -102,13 +102,18 @@ namespace graph
                   depth(n_vertices,0), max_depth{-1}
             { this->calculate_parents(); this->calculate_depth(); }
             
-            STree(const arc_type& out_arc, const arc_type& in_arc,
+            STree(const arc_type& out_arc_id, const arc_type& in_arc_id,
                   const STree& pattern)
                 : arcs{}, graph{pattern.graph}, 
                   n_vertices{pattern.n_vertices},
                   parnt(n_vertices,vertex_id{}), 
                   depth(n_vertices,0), max_depth{-1}
             {
+                arc_type& out_arc 
+                    = graph::arc(out_arc_id.beg,out_arc_id.end,*graph);
+                arc_type& in_arc 
+                    = graph::arc(in_arc_id.beg,in_arc_id.end,*graph);
+                
                 std::cerr << "STree OUT_ARC" << out_arc;
                 std::cerr << "STree IN_ARC " << in_arc;
                 std::cerr << "OLD ARCS" << std::endl;
@@ -121,13 +126,22 @@ namespace graph
                     ait_end = std::end(pattern.arcs);
                 
                 arc_list modified;
-                for(; ait != ait_end; ++ait)
+                // for(; ait != ait_end; ++ait)
+                for(auto& aid : pattern.arcs)
                 {
+                    arc_type& ref = graph::arc(aid.beg,aid.end,*graph);
                     std::cerr << "Out arc is: " << out_arc << std::endl;
-                    std::cerr << "This arc is: " << *ait << std::endl;
-                    if(*ait != out_arc) { this->arcs.push_back(*ait);
-                                          std::cerr << "Will put!";
-                                          std::cerr << std::endl; }
+                    std::cerr << "This arc is: " << ref << std::endl;
+                    if(ref != out_arc)
+                    { 
+                        this->arcs.push_back(ref);
+                        std::cerr << "Will put!" << std::endl;
+                    }
+                    // std::cerr << "Out arc is: " << out_arc << std::endl;
+                    // std::cerr << "This arc is: " << a << std::endl;
+                    // if(a != out_arc) { this->arcs.push_back(a);
+                    //                    std::cerr << "Will put!";
+                    //                    std::cerr << std::endl; }
                 }
                 
                 this->arcs.push_back(in_arc);
@@ -168,29 +182,45 @@ namespace graph
                     max_depth = depth[inserted.beg];
                 l = inserted.beg; r = inserted.end;
                 
-                std::cout << max_depth << std::endl;
+                std::cout << "Cycle: max depth: " << max_depth << std::endl;
                 
+                std::cerr << "Cycle: equaling heights" << std::endl;
+                std::cerr << "Cycle: parnt: ";
+                for(auto& a : parnt) std::cerr << a << " ";
+                std::cerr << std::endl;
                 // Intermediate arcs 
                 // (when with different depths)
+                std::cerr << "Cycle: left" << std::endl;
                 for(vertex_id lp = parnt[l]; depth[l] != max_depth; l = lp)
+                {
+                    lp = parnt[l];
                     lcycle.push_front( edge(lp,l,*this) );
+                }
+                std::cerr << "Cycle: right" << std::endl;
                 for(vertex_id rp = parnt[r]; depth[r] != max_depth; r = rp)
+                {
+                    rp = parnt[r];
+                    std::cerr << "  Cycle: " << r << " " << rp << std::endl;
                     cycle.push_back( edge(rp,r,*this) );
+                }
 
+                std::cerr << "Cycle: going up" << std::endl;
                 while(r != l)
                 {
                     // Intermediate arcs
                     // (when with the same depth)
                     vertex_id lp = parnt[l];
                     vertex_id rp = parnt[r];
+                    std::cerr << "Cycle: parnt[l]: " << lp 
+                              << " parnt[r]: " << rp << std::endl;
                     lcycle.push_front( edge(lp,l,*this) );
                     cycle.push_back( edge(rp,r,*this) );
                     r = rp; l = lp;
                 }
 
                 // Last arc
-                if(parnt[r] != r) 
-                    cycle.push_back(edge(parnt[r],r,*this));
+                // if(parnt[r] != r) 
+                    // cycle.push_back(edge(parnt[r],r,*this));
 
                 // Put the arcs such that the first arc of the
                 // cycle to be returned is the arc which generated

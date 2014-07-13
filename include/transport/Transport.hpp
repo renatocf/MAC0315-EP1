@@ -112,11 +112,11 @@ namespace transport
                 properties.flux = product;
             std::cout << extra_net << std::endl;
             
-            stree_type pseudo { 
+            stree_type pseudo {
                 extra_net,out_arcs_list(producer_id,extra_net)
             };
             
-            stree_type candidate { 
+            stree_type candidate {
                 graph::flow::network_simplex_algorithm(extra_net,pseudo)
             };
             
@@ -126,6 +126,12 @@ namespace transport
                     std::cerr << "Impossible problem!!" << std::endl;
                     return;
                 }
+            
+            std::tie(ait,ait_end) = arcs(extra_net);
+            for(; ait != ait_end; ++ait)
+                if(ait->beg != producer_id || !artificial[ait->end])
+                    graph::arc(ait->beg,ait->end,transport_net)
+                        .properties.flux = ait->properties.flux;
             
             arc_list list;
             for(arc_type& c : candidate.arcs)
