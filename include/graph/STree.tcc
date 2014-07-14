@@ -50,9 +50,9 @@ namespace graph
             typedef typename graph_type::vertex_size vertex_size;
             typedef typename graph_type::vertex_type vertex_type;
             
-            typedef std::vector<arc_id> id_list;
+            typedef std::vector<arc_id> arc_id_list;
             
-            id_list arc_ids;
+            arc_id_list arc_ids;
             
         private:
             graph_type* const      graph;
@@ -106,9 +106,15 @@ namespace graph
             {
                 for(arc_type& arc : arcs)
                     this->arc_ids.emplace_back(arc.beg,arc.end);
-                this->calculate_parents(); 
-                this->calculate_depth(); 
+                this->calculate_parents(); this->calculate_depth(); 
             }
+            
+            STree(graph_type& graph, arc_id_list arc_ids)
+                : arc_ids{arc_ids}, graph{&graph},
+                  n_vertices{graph.num_vertices()},
+                  parnt(n_vertices,vertex_id{}),
+                  depth(n_vertices,0), max_depth{-1}
+            { this->calculate_parents(); this->calculate_depth(); }
             
             STree(const arc_id& out_arc_id, const arc_id& in_arc_id,
                   const STree& pattern)

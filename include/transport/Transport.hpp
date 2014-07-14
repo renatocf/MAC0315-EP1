@@ -78,29 +78,26 @@ namespace transport
         void calculate_best_route()
         {
             std::vector<bool> artificial 
-            ( transport_net.num_vertices(), true );
+            ( graph::num_vertices(transport_net), true );
 
+            // Label arcs linking producer to other vertices
             digraph::out_iterator oit, oit_end;
             std::tie(oit,oit_end)
                 = graph::out_arcs(producer_id,transport_net);
             for(; oit != oit_end; ++oit) 
                 artificial[oit->end] = false;
             
+            // Arc producer->producer must not exist
             artificial[producer_id] = false;
             
-            for(bool b : artificial)
-                std::cout << b << " " << std::endl;
-            
+            // Create auxiliar digraph for feasible solution
             digraph extra_net { transport_net };
             
+            // Any real arc has cost 0
             digraph::arc_iterator ait, ait_end;
             std::tie(ait,ait_end) = arcs(extra_net);
-            
-            // Any real arc has cost 0
             for(; ait != ait_end; ++ait)
                 ait->properties.cost = 0;
-            std::cout << transport_net << std::endl;
-            std::cout << extra_net << std::endl;
             
             // Artificial arcs have cost 1
             for(unsigned int i = 0; i < artificial.size(); ++i)
@@ -109,13 +106,11 @@ namespace transport
                         arc_type{producer_id,i,{1}},extra_net
                     );
             
-            std::cout << extra_net << std::endl;
-            
             // All flux go by the arc producer->consumer
             graph::arc(producer_id,consumer_id,extra_net).
                 properties.flux = product;
-            std::cout << extra_net << std::endl;
             
+            // First tree with artificial arcs
             stree_type pseudo {
                 extra_net,out_arcs_list(producer_id,extra_net)
             };
@@ -138,13 +133,8 @@ namespace transport
                     graph::arc(ait->beg,ait->end,transport_net)
                         .properties.flux = ait->properties.flux;
             
-            arc_list list;
-            for(arc_id& c : candidate.arc_ids)
-                list.push_back(graph::arc(c.beg,c.end,transport_net));
-            stree_type initial { transport_net, list };
+            stree_type initial { transport_net, candidate.arc_ids };
             
-            std::cerr << std::endl << "Simplex phase 2" << std::endl;
-            std::cerr << transport_net << std::endl;
             graph::flow
             ::network_simplex_algorithm(transport_net,initial);
         }
