@@ -25,7 +25,6 @@
 void Options::parse_args(int argc, char **argv)
 {
     static struct option long_options[] = {
-        { "debug"   , no_argument,       nullptr,  'd' },
         { "verbose" , no_argument,       nullptr,  'v' },
         { "options" , required_argument, nullptr,  'o' },
         { "\0",       0,                 nullptr, '\0' }
@@ -37,8 +36,6 @@ void Options::parse_args(int argc, char **argv)
     {
         switch(c) 
         {
-            case 'd':
-                break;
             case 'v':
                 this->verbose = true;
                 break;

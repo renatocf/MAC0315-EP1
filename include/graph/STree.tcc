@@ -131,7 +131,7 @@ namespace graph
             }
             
             graph_type& base_graph() { return *graph; }
-            const graph_type& base_graph() const { return *base_graph; }
+            const graph_type& base_graph() const { return *graph; }
             
             vertex_id parent(vertex_id son) const { return parnt[son]; }
             
