@@ -27,7 +27,7 @@
 #include <getopt.h>
 
 /**
- * @namespace Options
+ * @class Options
  * @brief All functions and variables related to Transport problem.
  *
  * Define the prototype to a function to parse arguments and 
