@@ -105,7 +105,10 @@ namespace transport
             // Artificial arcs have cost 1
             for(unsigned int i = 0; i < artificial.size(); ++i)
                 if(artificial[i])
-                    graph::add_arc(arc_type{producer_id,i,{1}},extra_net);
+                    graph::add_arc(
+                        arc_type{producer_id,i,{1}},extra_net
+                    );
+            
             std::cout << extra_net << std::endl;
             
             // All flux go by the arc producer->consumer
@@ -118,7 +121,8 @@ namespace transport
             };
             
             stree_type candidate {
-                graph::flow::network_simplex_algorithm(extra_net,pseudo)
+                graph::flow
+                ::network_simplex_algorithm(extra_net,pseudo)
             };
             
             for(arc_id& c : candidate.arc_ids)

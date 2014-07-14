@@ -56,6 +56,8 @@ int main(int argc, char **argv)
     
     problem.calculate_best_route();
     
+    cout << problem << endl;
+    
     // typedef graph::flow::Vertex<>::type vertex;
     // typedef graph::flow::Arc<>::type    arc;
     //

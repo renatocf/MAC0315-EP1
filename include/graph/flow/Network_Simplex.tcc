@@ -45,42 +45,29 @@ namespace flow
         
         prices_calculator(stree_type st)
             : price(num_vertices(st),std::numeric_limits<cost_type>::max())
-        {std::cerr << "Num_vertices st: " << num_vertices(st) << std::endl;}
+        {}
         
         void end_visits(vertex_id id, stree_type st)
         {
-            std::cerr << "Visiting end arc ";
             arc_type  arc  = edge(id,parent(id,st),st);
-            std::cerr << arc;
             cost_type cost = arc.properties.cost;
-            std::cerr << "..." << std::endl;
             
             price[id] = price[parent(id,st)]
                       + (arc.end == id ? cost : -cost);
-            
-            std::cerr << "Prices: ";
-            for(auto& p : price) std::cerr << p << " ";
-            std::cerr << std::endl;
         }
         
         bool visit_parent_cond(vertex_id id, stree_type st)
         { 
-            bool b =  price[parent(id,st)] ==
-                      std::numeric_limits<cost_type>::max();
-            if(b) std::cerr << "== RECURSIVE CALL == ";
-            return b;
+            return price[parent(id,st)]
+                   == std::numeric_limits<cost_type>::max();
         }
         
         void radix(vertex_id id, stree_type st) 
         { 
-            std::cerr << "Visiting radix..." << std::endl;
             price[id] = 0; 
         }
         
-        void start_vertex(vertex_id id, stree_type st) 
-        {
-            std::cerr << "Starting vertices..." << std::endl;
-        }
+        void start_vertex  (vertex_id id, stree_type st) {}
         void before_parent (vertex_id id, stree_type st) {}
         void after_parent  (vertex_id id, stree_type st) {}
     };
@@ -91,63 +78,43 @@ namespace flow
         typename STree = graph::STree<Graph>
     >STree network_simplex_algorithm(Graph& g, STree& initial)
     {
-        typedef typename Graph::vertex_id vertex_id;
-        typedef typename Graph::arc_type  arc_type;
-        typedef typename Graph::arc_id    arc_id;
-        typedef typename Graph::arc_property
-            ::flux_type flux_type;
+        typedef typename Graph::vertex_id               vertex_id;
+        typedef typename Graph::arc_type                arc_type;
+        typedef typename Graph::arc_id                  arc_id;
+        typedef typename Graph::arc_property::flux_type flux_type;
         
         typedef typename STree::cycle_type cycle_type;
         
         typedef typename graph_traits<Graph>
             ::arc_iterator arc_iterator;
         
-        std::cerr << ">>> STARTING SIMPLEX ITERATION <<<" << std::endl;
-        
         // Step 1: Find prices (y)
-        std::cerr << ">> FINDING PRICES <<" << std::endl;
         prices_calculator<STree> prices{initial};
-        std::cerr << "> SEARCH <" << std::endl;
         stree_search(prices,initial);
         
-        std::cerr << "Prices: ";
-        for(auto& p : prices.price) std::cerr << p << " "; 
-        std::cerr << std::endl;
-
-        std::cerr << ">> END OF STEP 1 <<" << std::endl;
-        std::cerr << g << std::endl;
         // Step 2: Find (i,j) : y[i] + c[i,j] < y[j]
-        std::cerr << ">> FINDING IN_ARC <<" << std::endl;
         arc_iterator ait, ait_end;
         for(std::tie(ait,ait_end) = arcs(g); ait != ait_end; ++ait)
         {
             if(prices.price[ait->beg] + ait->properties.cost
                < prices.price[ait->end]) break;
         }
-
-        if(ait == ait_end) { std::cerr << ">> FINISH! <<" << std::endl;
-                             return initial; }
+        
+        // If there is no arc, Network Simplex ended
+        if(ait == ait_end) return initial;
         arc_type in_arc { *ait };
-        std::cerr << "IN_ARC: " << in_arc << std::endl;
-
-        std::cerr << ">> END OF STEP 2 <<" << std::endl;
-        std::cerr << g << std::endl;
+        
         // Step 3: Find fundamental cycle
-        std::cerr << ">> FINDING CYCLE <<" << std::endl;
-        std::cerr << initial << std::endl;
-        cycle_type cycle { initial.fundamental_cycle(in_arc) };
-        for(arc_id& aid : cycle)
-            std::cerr << aid << std::endl;
-
-        std::cerr << ">> END OF STEP 3 <<" << std::endl;
-        std::cerr << g << std::endl;
-        // Step 4: Find arc to be removed
-        std::cerr << ">> FINDING OUT_ARC <<" << std::endl;
+        cycle_type cycle { initial.fundamental_cycle(in_arc.id) };
+        
+        // Step 4: Find flux variation and arc to be removed
         arc_type& front 
             = graph::arc(cycle.front().beg,cycle.front().end,g);
+        
         flux_type min_delta { front.properties.capacity };
         arc_type  out_arc   { front                     };
         vertex_id pivot     { front.beg                 };
+        
         for(arc_id& aid : cycle)
         {
             flux_type delta;
@@ -164,39 +131,27 @@ namespace flow
                 delta = arc.properties.flux - arc.properties.requirement;
                 pivot = arc.beg;
             }
-            std::cerr << arc << " DELTA: " << delta << std::endl;
-            if(delta < min_delta)
-            { min_delta = delta; out_arc = arc; }
+            if(delta < min_delta) { min_delta = delta; out_arc = arc; }
         }
-        std::cerr << "MIN_DELTA: " << min_delta << std::endl;
         
+        // Step 5: Update flux values
         pivot = cycle.front().beg;
         for(arc_id& aid : cycle)
         {
-            std::cerr << "Running throug cycle: " << aid << std::endl;
             arc_type& arc = graph::arc(aid.beg,aid.end,g);
             if(pivot == arc.beg)
             {
-                std::cerr << "Is direct arc! " << arc << std::endl;
                 arc.properties.flux += min_delta;
-                std::cerr << "New flux: " << arc << std::endl;
                 pivot = arc.end;
             }
             else // pivot == arc.end
             {
-                std::cerr << "Is reverse arc! " << arc << std::endl;
                 arc.properties.flux -= min_delta;
-                std::cerr << "New flux: " << arc << std::endl;
                 pivot = arc.beg; 
             }
         }
         
-        std::cerr << "OUT_ARC: " << out_arc << std::endl;
-        
-        std::cerr << ">> END OF STEP 4 <<" << std::endl;
-        std::cerr << g << std::endl;
-        
-        STree modified { out_arc, in_arc, initial };
+        STree modified { out_arc.id, in_arc.id, initial };
         return network_simplex_algorithm(g, modified);
     }
 }}

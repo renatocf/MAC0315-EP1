@@ -50,8 +50,9 @@ namespace graph
             typedef typename graph_type::vertex_size vertex_size;
             typedef typename graph_type::vertex_type vertex_type;
             
-            // arc_list               arc_ids;
-            std::vector<arc_id>    arc_ids;
+            typedef std::vector<arc_id> id_list;
+            
+            id_list arc_ids;
             
         private:
             graph_type* const      graph;
@@ -109,7 +110,7 @@ namespace graph
                 this->calculate_depth(); 
             }
             
-            STree(const arc_type& out_arc_id, const arc_type& in_arc_id,
+            STree(const arc_id& out_arc_id, const arc_id& in_arc_id,
                   const STree& pattern)
                 : arc_ids{}, graph{pattern.graph}, 
                   n_vertices{pattern.n_vertices},
@@ -121,94 +122,44 @@ namespace graph
                 arc_type& in_arc 
                     = graph::arc(in_arc_id.beg,in_arc_id.end,*graph);
                 
-                std::cerr << "STree OUT_ARC" << out_arc;
-                std::cerr << "STree IN_ARC " << in_arc;
-                std::cerr << "Old arcs: " << std::endl;
-                for(auto& a : pattern.arc_ids)
-                    std::cerr << a << " ";
-                std::cerr << std::endl;
-                
                 for(auto& aid : pattern.arc_ids)
-                {
-                    std::cerr << "Out arc is: " << out_arc.id << std::endl;
-                    std::cerr << "This arc is: " << aid << std::endl;
                     if(aid != out_arc.id)
-                    { 
                         this->arc_ids.emplace_back(aid);
-                        std::cerr << "Will put!" << std::endl;
-                    }
-                }
-                
                 this->arc_ids.emplace_back(in_arc.beg,in_arc.end);
                 
-                std::cerr << "New arcs: " << std::endl;
-                for(auto& a : this->arc_ids)
-                    std::cerr << a << " ";
-                std::cerr << std::endl;
-                
-                this->calculate_parents(); 
-                std::cerr << "Parent: ";
-                for(auto& id : this->parnt)
-                    std::cerr << id << " ";
-                std::cerr << std::endl;
-                
-                this->calculate_depth();
-                std::cerr << "Depth: ";
-                for(auto& d : this->depth)
-                    std::cerr << d << " ";
-                std::cerr << std::endl;
+                this->calculate_parents(); this->calculate_depth();
             }
             
             graph_type& base_graph() { return *graph; }
             const graph_type& base_graph() const { return *base_graph; }
             
-            vertex_id parent(vertex_id son) const
-            { 
-                return parnt[son]; 
-            }
+            vertex_id parent(vertex_id son) const { return parnt[son]; }
             
-            cycle_type fundamental_cycle(const arc_type& inserted)
+            vertex_size num_vertices() const { return this->n_vertices; }
+            
+            cycle_type fundamental_cycle(const arc_id& inserted)
             {
-                cycle_type cycle { inserted.id }, lcycle {};
-                vertex_id l { inserted.beg }; 
-                vertex_id r { inserted.end };
+                cycle_type cycle { inserted }, lcycle {};
+                vertex_id l { inserted.beg }, r { inserted.end };
                 int max_depth = depth[inserted.beg]; 
                 
+                // Get max depth
                 if(depth[inserted.end] > max_depth) 
                     max_depth = depth[inserted.beg];
                 l = inserted.beg; r = inserted.end;
                 
-                std::cout << "Cycle: max depth: " << max_depth << std::endl;
-                
-                std::cerr << "Cycle: equaling heights" << std::endl;
-                std::cerr << "Cycle: parnt: ";
-                for(auto& a : parnt) std::cerr << a << " ";
-                std::cerr << std::endl;
                 // Intermediate arc_ids 
                 // (when with different depths)
-                std::cerr << "Cycle: left" << std::endl;
                 for(vertex_id lp = parnt[l]; depth[l] != max_depth; l = lp)
-                {
-                    lp = parnt[l];
-                    lcycle.emplace_front(lp,l);
-                }
-                std::cerr << "Cycle: right" << std::endl;
+                { lp = parnt[l]; lcycle.emplace_front(lp,l); }
                 for(vertex_id rp = parnt[r]; depth[r] != max_depth; r = rp)
-                {
-                    rp = parnt[r];
-                    std::cerr << "  Cycle: " << r << " " << rp << std::endl;
-                    cycle.emplace_back(rp,r);
-                }
+                { rp = parnt[r]; cycle.emplace_back(rp,r); }
                 
-                std::cerr << "Cycle: going up" << std::endl;
                 while(r != l)
                 {
-                    // Intermediate arc_ids
-                    // (when with the same depth)
+                    // Intermediate arc_ids (when with the same depth)
                     vertex_id lp = parnt[l];
                     vertex_id rp = parnt[r];
-                    std::cerr << "Cycle: parnt[l]: " << lp 
-                              << " parnt[r]: " << rp << std::endl;
                     lcycle.emplace_front(lp,l);
                     cycle.emplace_back(rp,r);
                     r = rp; l = lp;
@@ -217,25 +168,13 @@ namespace graph
                 // Put the arc_ids such that the first arc of the
                 // cycle to be returned is the arc which generated
                 // the fundamental cycle
-                for(arc_id& aid : lcycle) cycle.push_back(aid);
-                // cycle.insert(std::begin(lcycle), std::end(lcycle));
+                cycle.insert(
+                    std::end(cycle),    // Inserting start position
+                    std::begin(lcycle), // Begin of left side cycle
+                    std::end(lcycle)    // End of left side cycle
+                );
                 
                 return cycle;
-            }
-            
-            vertex_size num_vertices() const 
-            { return this->n_vertices; }
-            
-            friend std::ostream& 
-            operator<<(std::ostream& os, const STree& st)
-            {
-                for(int i = 0; i <= st.max_depth; i++)
-                {
-                    for(int d : st.depth)
-                        if(d == i) os << d << " ";
-                    os << std::endl;
-                }
-                return os;
             }
     };
     
@@ -257,10 +196,13 @@ namespace graph
         edge(typename STree::vertex_id v1, 
              typename STree::vertex_id v2, STree st)
     {
-        try { return arc(v1,v2,st.base_graph()); }
-        catch(graph::arc_not_found) {}
-        try { return arc(v2,v1,st.base_graph()); }
-        catch(graph::arc_not_found) {}
+        for(typename STree::arc_id aid : st.arc_ids)
+        {
+            if(aid.beg == v1 && aid.end == v2)
+                return arc(v1,v2,st.base_graph());
+            else if(aid.beg == v2 && aid.end == v1)
+                return arc(v2,v1,st.base_graph()); 
+        }
         throw graph::arc_not_found{};
     }
 }
