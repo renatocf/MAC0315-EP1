@@ -32,76 +32,83 @@ namespace transport
 {
     class Transport
     {
-        typedef graph::flow::Vertex<>::type   vertex_type;
-        typedef graph::flow::Arc<>::type      arc_type;
-        typedef typename vertex_type::id_type vertex_id;
-        typedef typename arc_type::id_type    arc_id;
-        
-        typedef graph // Graph to describe problem
-        ::Adjacency_list<graph::directed,vertex_type,arc_type> digraph;
-        
-        typedef graph::STree<digraph> stree_type; // Spanning tree
-        
-        typedef digraph::arc_list arc_list;
-        
-        digraph transport_net;
-        size_t n_nodes; int product;
-        vertex_id producer_id, consumer_id;
-        
-    public:
-        Transport(std::string filename)
-        {
-            std::ifstream input { filename };
+        public:
+            typedef graph::flow::Vertex<>::type   vertex_type;
+            typedef graph::flow::Arc<>::type      arc_type;
+            typedef typename vertex_type::id_type vertex_id;
+            typedef typename arc_type::id_type    arc_id;
             
-            vertex_id source, target;
-            unsigned int cost;
+            typedef graph // Graph to describe problem
+            ::Adjacency_list<graph::directed,vertex_type,arc_type> digraph;
             
-            // Get basic info (# nodes, producer, consumer, # product)
-            input >> n_nodes >> producer_id >> consumer_id >> product;
+            typedef graph::STree<digraph> stree_type; // Spanning tree
             
-            // Create network transport
-            this->transport_net = digraph{n_nodes};
+            typedef digraph::arc_list arc_list;
             
-            vertex_type& producer 
-                = graph::vertex(producer_id,transport_net);
-            producer.properties.demand = -product;
+        private:
+            digraph transport_net;
+            size_t n_nodes; int product;
+            vertex_id producer_id, consumer_id;
             
-            vertex_type& consumer 
-                = graph::vertex(consumer_id,transport_net);
-            consumer.properties.demand = product;
+        public:
+            Transport(std::string filename)
+            {
+                std::ifstream input { filename };
+                
+                vertex_id source, target;
+                unsigned int cost;
+                
+                // Get basic info (# nodes, producer, consumer, # product)
+                input >> n_nodes >> producer_id >> consumer_id >> product;
+                
+                // Create network transport
+                this->transport_net = digraph{n_nodes};
+                
+                vertex_type& producer 
+                    = graph::vertex(producer_id,transport_net);
+                producer.properties.demand = -product;
+                
+                vertex_type& consumer 
+                    = graph::vertex(consumer_id,transport_net);
+                consumer.properties.demand = product;
+                
+                while(input >> source >> target >> cost)
+                    graph::add_arc(arc_type{source,target,{cost}},
+                                   transport_net);
+            }
             
-            while(input >> source >> target >> cost)
-                graph::add_arc(arc_type{source,target,{cost}},
-                               transport_net);
-        }
-        
-        //std::pair<int,std::vector<int>> 
-        void calculate_best_route()
-        {
-            // Find initial solution
-            arc_list values; stree_type candidate(transport_net);
-            std::tie(values, candidate) = graph::flow
-            ::network_simplex_initial_solution<digraph,stree_type>
-                (producer_id,transport_net);
+            std::pair<arc_list,int> calculate_best_route()
+            {
+                // Find initial solution
+                arc_list values; stree_type candidate(transport_net);
+                std::tie(values, candidate) = graph::flow
+                ::network_simplex_initial_solution<digraph,stree_type>
+                    (producer_id,transport_net);
+                
+                for(arc_type& arc : values)
+                    graph::arc(arc.beg,arc.end,transport_net)
+                        .properties.flux = arc.properties.flux;
+                
+                // Initial tree is the candidate associated with this graph
+                stree_type initial { transport_net, candidate.arc_ids() };
+                
+                // Calculate best route (using flux)
+                stree_type best(transport_net);
+                std::tie(values, best) = graph::flow
+                ::network_simplex_algorithm(initial,transport_net);
+                
+                int total_cost = 0;
+                for(arc_type& arc : values)
+                    total_cost += arc.properties.cost * arc.properties.flux;
+                
+                return std::pair<arc_list,int>{values,total_cost};
+            }
             
-            for(arc_type& arc : values)
-                graph::arc(arc.beg,arc.end,transport_net)
-                    .properties.flux = arc.properties.flux;
-            
-            // Initial tree is the candidate associated with this graph
-            stree_type initial { transport_net, candidate.arc_ids() };
-            
-            std::cerr << std::endl << "Simplex phase 2" << std::endl;
-            std::cerr << transport_net << std::endl;
-            graph::flow
-            ::network_simplex_algorithm(initial,transport_net);
-        }
-        
-        friend std::ostream& 
-        operator<<(std::ostream& os, const Transport& t)
-        {
-            os << t.transport_net; return os;
-        }
+            friend std::ostream& 
+            operator<<(std::ostream& os, const Transport& t)
+            {
+                os << t.transport_net; return os;
+            }
     };
 }
 
