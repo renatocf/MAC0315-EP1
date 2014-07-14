@@ -46,8 +46,7 @@ int main(int argc, char **argv)
     
     if(argc-optind != 1)
     {
-        cerr << "Usage: Simplex [-d] [-v] [-o] input.dat ..." << endl;
-        cerr << "Type --help for more information" << endl;
+        cerr << "Usage: Simplex [-v] [-o] input.dat ..." << endl;
         return EXIT_FAILURE;
     }
     
