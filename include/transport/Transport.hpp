@@ -34,6 +34,7 @@ namespace transport
         typedef graph::flow::Vertex<>::type   vertex_type;
         typedef graph::flow::Arc<>::type      arc_type;
         typedef typename vertex_type::id_type vertex_id;
+        typedef typename arc_type::id_type    arc_id;
         
         typedef graph // Graph to describe problem
         ::Adjacency_list<graph::directed,vertex_type,arc_type> digraph;
@@ -120,7 +121,7 @@ namespace transport
                 graph::flow::network_simplex_algorithm(extra_net,pseudo)
             };
             
-            for(arc_type& c : candidate.arcs)
+            for(arc_id& c : candidate.arc_ids)
                 if(c.beg == producer_id && artificial[c.end])
                 {
                     std::cerr << "Impossible problem!!" << std::endl;
@@ -134,7 +135,7 @@ namespace transport
                         .properties.flux = ait->properties.flux;
             
             arc_list list;
-            for(arc_type& c : candidate.arcs)
+            for(arc_id& c : candidate.arc_ids)
                 list.push_back(graph::arc(c.beg,c.end,transport_net));
             stree_type initial { transport_net, list };
             

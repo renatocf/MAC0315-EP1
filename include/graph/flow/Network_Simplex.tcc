@@ -92,7 +92,8 @@ namespace flow
     >STree network_simplex_algorithm(Graph& g, STree& initial)
     {
         typedef typename Graph::vertex_id vertex_id;
-        typedef typename Graph::arc_type arc_type;
+        typedef typename Graph::arc_type  arc_type;
+        typedef typename Graph::arc_id    arc_id;
         typedef typename Graph::arc_property
             ::flux_type flux_type;
         
@@ -135,19 +136,22 @@ namespace flow
         std::cerr << ">> FINDING CYCLE <<" << std::endl;
         std::cerr << initial << std::endl;
         cycle_type cycle { initial.fundamental_cycle(in_arc) };
-        for(arc_type& a : cycle)
-            std::cerr << a << std::endl;
+        for(arc_id& aid : cycle)
+            std::cerr << aid << std::endl;
 
         std::cerr << ">> END OF STEP 3 <<" << std::endl;
         std::cerr << g << std::endl;
         // Step 4: Find arc to be removed
         std::cerr << ">> FINDING OUT_ARC <<" << std::endl;
-        flux_type min_delta { cycle.front().properties.capacity };
-        arc_type  out_arc   { cycle.front()                     };
-        vertex_id pivot     { cycle.front().beg                 };
-        for(arc_type& arc : cycle)
+        arc_type& front 
+            = graph::arc(cycle.front().beg,cycle.front().end,g);
+        flux_type min_delta { front.properties.capacity };
+        arc_type  out_arc   { front                     };
+        vertex_id pivot     { front.beg                 };
+        for(arc_id& aid : cycle)
         {
             flux_type delta;
+            arc_type& arc = graph::arc(aid.beg,aid.end,g);
             if(pivot == arc.beg)
             {
                 // Arc in cycle direction
@@ -160,35 +164,37 @@ namespace flow
                 delta = arc.properties.flux - arc.properties.requirement;
                 pivot = arc.beg;
             }
-            std::cerr << "DELTA: " << delta << std::endl;
-            if(delta < min_delta) { min_delta = delta; out_arc = arc; }
+            std::cerr << arc << " DELTA: " << delta << std::endl;
+            if(delta < min_delta)
+            { min_delta = delta; out_arc = arc; }
         }
         std::cerr << "MIN_DELTA: " << min_delta << std::endl;
-
+        
         pivot = cycle.front().beg;
-        for(arc_type& arc : cycle)
+        for(arc_id& aid : cycle)
         {
-            std::cerr << "Running throug cycle: " << arc << std::endl;
+            std::cerr << "Running throug cycle: " << aid << std::endl;
+            arc_type& arc = graph::arc(aid.beg,aid.end,g);
             if(pivot == arc.beg)
             {
                 std::cerr << "Is direct arc! " << arc << std::endl;
-                graph::arc(arc.beg,arc.end,g).properties.flux += min_delta; 
+                arc.properties.flux += min_delta;
                 std::cerr << "New flux: " << arc << std::endl;
                 pivot = arc.end;
             }
             else // pivot == arc.end
-            { 
+            {
                 std::cerr << "Is reverse arc! " << arc << std::endl;
-                graph::arc(arc.beg,arc.end,g).properties.flux -= min_delta; 
+                arc.properties.flux -= min_delta;
                 std::cerr << "New flux: " << arc << std::endl;
                 pivot = arc.beg; 
             }
         }
         
+        std::cerr << "OUT_ARC: " << out_arc << std::endl;
+        
         std::cerr << ">> END OF STEP 4 <<" << std::endl;
         std::cerr << g << std::endl;
-        
-        std::cerr << "OUT_ARC: " << out_arc << std::endl;
         
         STree modified { out_arc, in_arc, initial };
         return network_simplex_algorithm(g, modified);

@@ -28,7 +28,7 @@
 namespace graph 
 {
     template<typename Arc = graph::Arc<>>
-    struct Cycle { typedef std::deque<Arc> type; };
+    struct Cycle { typedef std::deque<typename Arc::id_type> type; };
 }
 
 #endif

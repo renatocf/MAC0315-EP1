@@ -38,7 +38,23 @@ namespace graph
             typedef Vertex                         vertex_type;
             typedef typename vertex_type::id_type  vertex_id;
                                                    
-            typedef std::pair<vertex_id,vertex_id> id_type;
+            struct id_type 
+            { 
+                vertex_id beg, end; 
+                id_type(const vertex_id& beg, const vertex_id& end)
+                    : beg{beg}, end{end} {}
+                
+                bool operator==(const id_type& id) const
+                { return this->beg == id.beg && this->end == id.end; }
+                
+                bool operator!=(const id_type& id) const
+                { return !operator==(id); }
+                
+                friend std::ostream& 
+                operator<<(std::ostream& os, const id_type& id)
+                { os << "(" << id.beg << "," << id.end << ")"; return os; }
+            };
+            
             typedef Properties                     property_type;
             typedef size_t                         size_type;
             
@@ -49,28 +65,28 @@ namespace graph
             explicit
             Arc(const id_type& base_id,
                 const property_type properties = property_type{})
-                : id{base_id}, beg{id.first}, end{id.second},
+                : id{base_id}, beg{id.beg}, end{id.end},
                   properties{properties} {}
             
             explicit
             Arc(const vertex_type& beg, const vertex_type& end, 
                 const property_type properties = property_type{})
-                : id{beg.id,end.id}, beg{id.first}, end{id.second},
+                : id{beg.id,end.id}, beg{id.beg}, end{id.end},
                   properties{properties} {}
             
             explicit
             Arc(const vertex_id beg, const vertex_id end, 
                 const property_type properties = property_type{})
-                : id{beg,end}, beg{id.first}, end{id.second},
+                : id{beg,end}, beg{id.beg}, end{id.end},
                   properties{properties} {}
             
             Arc(const Arc& p)
-                : id{p.id}, beg{id.first}, end{id.second},
+                : id{p.id}, beg{id.beg}, end{id.end},
                   properties{p.properties} {}
             
             Arc(const Arc&& p)
-                : id{std::move(p.id)}, beg{id.first}, 
-                  end{id.second}, properties{std::move(p.properties)} {}
+                : id{std::move(p.id)}, beg{id.beg}, end{id.end},
+                  properties{std::move(p.properties)} {}
             
             Arc& operator=(const Arc& copied)
             {

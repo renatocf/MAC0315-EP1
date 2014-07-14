@@ -43,13 +43,15 @@ namespace graph
         public:
             typedef Graph graph_type;
             typedef Cycle cycle_type;
+            typedef typename graph_type::arc_id      arc_id;
             typedef typename graph_type::arc_type    arc_type;
             typedef typename graph_type::arc_list    arc_list;
             typedef typename graph_type::vertex_id   vertex_id;
             typedef typename graph_type::vertex_size vertex_size;
             typedef typename graph_type::vertex_type vertex_type;
             
-            arc_list               arcs;
+            // arc_list               arc_ids;
+            std::vector<arc_id>    arc_ids;
             
         private:
             graph_type* const      graph;
@@ -62,22 +64,22 @@ namespace graph
             {
                 std::vector<bool> has_parnt(n_vertices,false);
                 for(vertex_id id : this->parnt) this->parnt[id] = id;
-                for(const arc_type& arc : arcs)
+                for(const arc_id& aid : arc_ids)
                 {
-                    if(has_parnt[arc.beg] && !has_parnt[arc.end])
+                    if(has_parnt[aid.beg] && !has_parnt[aid.end])
                     {
-                        parnt[arc.end] = arc.beg;
-                        has_parnt[arc.end] = true;
+                        parnt[aid.end] = aid.beg;
+                        has_parnt[aid.end] = true;
                     }
-                    else if(!has_parnt[arc.beg] && has_parnt[arc.end])
+                    else if(!has_parnt[aid.beg] && has_parnt[aid.end])
                     {
-                        parnt[arc.beg] = arc.end;
-                        has_parnt[arc.beg] = true;
+                        parnt[aid.beg] = aid.end;
+                        has_parnt[aid.beg] = true;
                     }
-                    else if(!has_parnt[arc.beg] && !has_parnt[arc.end])
+                    else if(!has_parnt[aid.beg] && !has_parnt[aid.end])
                     {
-                        parnt[arc.end] = arc.beg;
-                        has_parnt[arc.end] = true;
+                        parnt[aid.end] = aid.beg;
+                        has_parnt[aid.end] = true;
                     }
                 }
             }
@@ -96,15 +98,20 @@ namespace graph
             
         public:        
             STree(graph_type& graph, arc_list arcs)
-                : arcs{arcs}, graph{&graph}, 
+                : arc_ids{}, graph{&graph}, 
                   n_vertices{graph.num_vertices()},
                   parnt(n_vertices,vertex_id{}), 
                   depth(n_vertices,0), max_depth{-1}
-            { this->calculate_parents(); this->calculate_depth(); }
+            {
+                for(arc_type& arc : arcs)
+                    this->arc_ids.emplace_back(arc.beg,arc.end);
+                this->calculate_parents(); 
+                this->calculate_depth(); 
+            }
             
             STree(const arc_type& out_arc_id, const arc_type& in_arc_id,
                   const STree& pattern)
-                : arcs{}, graph{pattern.graph}, 
+                : arc_ids{}, graph{pattern.graph}, 
                   n_vertices{pattern.n_vertices},
                   parnt(n_vertices,vertex_id{}), 
                   depth(n_vertices,0), max_depth{-1}
@@ -116,39 +123,28 @@ namespace graph
                 
                 std::cerr << "STree OUT_ARC" << out_arc;
                 std::cerr << "STree IN_ARC " << in_arc;
-                std::cerr << "OLD ARCS" << std::endl;
-                for(auto& a : pattern.arcs)
-                    std::cerr << a << std::endl;
+                std::cerr << "Old arcs: " << std::endl;
+                for(auto& a : pattern.arc_ids)
+                    std::cerr << a << " ";
+                std::cerr << std::endl;
                 
-                typename arc_list::const_iterator 
-                    ait = std::begin(pattern.arcs);
-                typename arc_list::const_iterator 
-                    ait_end = std::end(pattern.arcs);
-                
-                arc_list modified;
-                // for(; ait != ait_end; ++ait)
-                for(auto& aid : pattern.arcs)
+                for(auto& aid : pattern.arc_ids)
                 {
-                    arc_type& ref = graph::arc(aid.beg,aid.end,*graph);
-                    std::cerr << "Out arc is: " << out_arc << std::endl;
-                    std::cerr << "This arc is: " << ref << std::endl;
-                    if(ref != out_arc)
+                    std::cerr << "Out arc is: " << out_arc.id << std::endl;
+                    std::cerr << "This arc is: " << aid << std::endl;
+                    if(aid != out_arc.id)
                     { 
-                        this->arcs.push_back(ref);
+                        this->arc_ids.emplace_back(aid);
                         std::cerr << "Will put!" << std::endl;
                     }
-                    // std::cerr << "Out arc is: " << out_arc << std::endl;
-                    // std::cerr << "This arc is: " << a << std::endl;
-                    // if(a != out_arc) { this->arcs.push_back(a);
-                    //                    std::cerr << "Will put!";
-                    //                    std::cerr << std::endl; }
                 }
                 
-                this->arcs.push_back(in_arc);
+                this->arc_ids.emplace_back(in_arc.beg,in_arc.end);
                 
-                std::cerr << "NEW ARCS" << std::endl;
-                for(auto& a : this->arcs)
-                    std::cerr << a << std::endl;
+                std::cerr << "New arcs: " << std::endl;
+                for(auto& a : this->arc_ids)
+                    std::cerr << a << " ";
+                std::cerr << std::endl;
                 
                 this->calculate_parents(); 
                 std::cerr << "Parent: ";
@@ -165,7 +161,7 @@ namespace graph
             
             graph_type& base_graph() { return *graph; }
             const graph_type& base_graph() const { return *base_graph; }
-                
+            
             vertex_id parent(vertex_id son) const
             { 
                 return parnt[son]; 
@@ -173,7 +169,7 @@ namespace graph
             
             cycle_type fundamental_cycle(const arc_type& inserted)
             {
-                cycle_type cycle { inserted }, lcycle {};
+                cycle_type cycle { inserted.id }, lcycle {};
                 vertex_id l { inserted.beg }; 
                 vertex_id r { inserted.end };
                 int max_depth = depth[inserted.beg]; 
@@ -188,44 +184,41 @@ namespace graph
                 std::cerr << "Cycle: parnt: ";
                 for(auto& a : parnt) std::cerr << a << " ";
                 std::cerr << std::endl;
-                // Intermediate arcs 
+                // Intermediate arc_ids 
                 // (when with different depths)
                 std::cerr << "Cycle: left" << std::endl;
                 for(vertex_id lp = parnt[l]; depth[l] != max_depth; l = lp)
                 {
                     lp = parnt[l];
-                    lcycle.push_front( edge(lp,l,*this) );
+                    lcycle.emplace_front(lp,l);
                 }
                 std::cerr << "Cycle: right" << std::endl;
                 for(vertex_id rp = parnt[r]; depth[r] != max_depth; r = rp)
                 {
                     rp = parnt[r];
                     std::cerr << "  Cycle: " << r << " " << rp << std::endl;
-                    cycle.push_back( edge(rp,r,*this) );
+                    cycle.emplace_back(rp,r);
                 }
-
+                
                 std::cerr << "Cycle: going up" << std::endl;
                 while(r != l)
                 {
-                    // Intermediate arcs
+                    // Intermediate arc_ids
                     // (when with the same depth)
                     vertex_id lp = parnt[l];
                     vertex_id rp = parnt[r];
                     std::cerr << "Cycle: parnt[l]: " << lp 
                               << " parnt[r]: " << rp << std::endl;
-                    lcycle.push_front( edge(lp,l,*this) );
-                    cycle.push_back( edge(rp,r,*this) );
+                    lcycle.emplace_front(lp,l);
+                    cycle.emplace_back(rp,r);
                     r = rp; l = lp;
                 }
-
-                // Last arc
-                // if(parnt[r] != r) 
-                    // cycle.push_back(edge(parnt[r],r,*this));
-
-                // Put the arcs such that the first arc of the
+                
+                // Put the arc_ids such that the first arc of the
                 // cycle to be returned is the arc which generated
                 // the fundamental cycle
-                for(arc_type& a : lcycle) cycle.push_back(a);
+                for(arc_id& aid : lcycle) cycle.push_back(aid);
+                // cycle.insert(std::begin(lcycle), std::end(lcycle));
                 
                 return cycle;
             }
