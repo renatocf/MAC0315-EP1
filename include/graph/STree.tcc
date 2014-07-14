@@ -25,12 +25,10 @@
 #include <initializer_list>
 
 // Libraries
-#include "Arc.tcc"
-#include "Cycle.tcc"
-#include "Vertex.tcc"
-#include "Traits.tcc"
-#include "Exception.tcc"
-#include "Adjacency_list.tcc"
+#include "graph/Cycle.tcc"
+#include "graph/Traits.tcc"
+#include "graph/Exception.tcc"
+#include "graph/Adjacency_list.tcc"
 
 namespace graph 
 {
@@ -52,11 +50,10 @@ namespace graph
             
             typedef std::vector<arc_id> arc_id_list;
             
-            arc_id_list arc_ids;
-            
         private:
-            graph_type* const      graph;
+            graph_type*            graph;
             vertex_size            n_vertices;
+            arc_id_list            ids;
             std::vector<vertex_id> parnt;
             std::vector<int>       depth;
             int                    max_depth;
@@ -65,7 +62,7 @@ namespace graph
             {
                 std::vector<bool> has_parnt(n_vertices,false);
                 for(vertex_id id : this->parnt) this->parnt[id] = id;
-                for(const arc_id& aid : arc_ids)
+                for(const arc_id& aid : ids)
                 {
                     if(has_parnt[aid.beg] && !has_parnt[aid.end])
                     {
@@ -98,29 +95,26 @@ namespace graph
             }
             
         public:        
-            STree(graph_type& graph, arc_list arcs)
-                : arc_ids{}, graph{&graph}, 
-                  n_vertices{graph.num_vertices()},
-                  parnt(n_vertices,vertex_id{}), 
+            STree(graph_type& graph, arc_list arcs = arc_list{})
+                : graph{&graph}, n_vertices{graph.num_vertices()},
+                  ids{}, parnt(n_vertices,vertex_id{}), 
                   depth(n_vertices,0), max_depth{-1}
             {
                 for(arc_type& arc : arcs)
-                    this->arc_ids.emplace_back(arc.beg,arc.end);
+                    this->ids.emplace_back(arc.beg,arc.end);
                 this->calculate_parents(); this->calculate_depth(); 
             }
             
-            STree(graph_type& graph, arc_id_list arc_ids)
-                : arc_ids{arc_ids}, graph{&graph},
-                  n_vertices{graph.num_vertices()},
-                  parnt(n_vertices,vertex_id{}),
+            STree(graph_type& graph, arc_id_list ids)
+                : graph{&graph}, n_vertices{graph.num_vertices()},
+                  ids{ids}, parnt(n_vertices,vertex_id{}),
                   depth(n_vertices,0), max_depth{-1}
             { this->calculate_parents(); this->calculate_depth(); }
             
             STree(const arc_id& out_arc_id, const arc_id& in_arc_id,
                   const STree& pattern)
-                : arc_ids{}, graph{pattern.graph}, 
-                  n_vertices{pattern.n_vertices},
-                  parnt(n_vertices,vertex_id{}), 
+                : graph{pattern.graph}, n_vertices{pattern.n_vertices},
+                  ids{}, parnt(n_vertices,vertex_id{}), 
                   depth(n_vertices,0), max_depth{-1}
             {
                 arc_type& out_arc 
@@ -128,10 +122,10 @@ namespace graph
                 arc_type& in_arc 
                     = graph::arc(in_arc_id.beg,in_arc_id.end,*graph);
                 
-                for(auto& aid : pattern.arc_ids)
+                for(const arc_id& aid : pattern.arc_ids())
                     if(aid != out_arc.id)
-                        this->arc_ids.emplace_back(aid);
-                this->arc_ids.emplace_back(in_arc.beg,in_arc.end);
+                        this->ids.emplace_back(aid);
+                this->ids.emplace_back(in_arc.beg,in_arc.end);
                 
                 this->calculate_parents(); this->calculate_depth();
             }
@@ -142,6 +136,8 @@ namespace graph
             vertex_id parent(vertex_id son) const { return parnt[son]; }
             
             vertex_size num_vertices() const { return this->n_vertices; }
+            
+            const arc_id_list arc_ids() const { return this->ids; }
             
             cycle_type fundamental_cycle(const arc_id& inserted)
             {
@@ -154,7 +150,7 @@ namespace graph
                     max_depth = depth[inserted.beg];
                 l = inserted.beg; r = inserted.end;
                 
-                // Intermediate arc_ids 
+                // Intermediate ids 
                 // (when with different depths)
                 for(vertex_id lp = parnt[l]; depth[l] != max_depth; l = lp)
                 { lp = parnt[l]; lcycle.emplace_front(lp,l); }
@@ -163,7 +159,7 @@ namespace graph
                 
                 while(r != l)
                 {
-                    // Intermediate arc_ids (when with the same depth)
+                    // Intermediate ids (when with the same depth)
                     vertex_id lp = parnt[l];
                     vertex_id rp = parnt[r];
                     lcycle.emplace_front(lp,l);
@@ -171,7 +167,7 @@ namespace graph
                     r = rp; l = lp;
                 }
                 
-                // Put the arc_ids such that the first arc of the
+                // Put the ids such that the first arc of the
                 // cycle to be returned is the arc which generated
                 // the fundamental cycle
                 cycle.insert(
@@ -202,7 +198,7 @@ namespace graph
         edge(typename STree::vertex_id v1, 
              typename STree::vertex_id v2, STree st)
     {
-        for(typename STree::arc_id aid : st.arc_ids)
+        for(const typename STree::arc_id aid : st.arc_ids())
         {
             if(aid.beg == v1 && aid.end == v2)
                 return arc(v1,v2,st.base_graph());

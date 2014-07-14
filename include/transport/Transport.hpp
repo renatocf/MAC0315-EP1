@@ -23,7 +23,6 @@
 
 // Libraries
 #include "graph/STree.tcc"
-#include "graph/stree_search.tcc"
 #include "graph/Adjacency_list.tcc"
 #include "graph/flow/Network_Simplex.tcc"
 
@@ -77,64 +76,20 @@ namespace transport
         //std::pair<int,std::vector<int>> 
         void calculate_best_route()
         {
-            std::vector<bool> artificial 
-            ( graph::num_vertices(transport_net), true );
-
-            // Label arcs linking producer to other vertices
-            digraph::out_iterator oit, oit_end;
-            std::tie(oit,oit_end)
-                = graph::out_arcs(producer_id,transport_net);
-            for(; oit != oit_end; ++oit) 
-                artificial[oit->end] = false;
+            // Find initial solution
+            arc_list values; stree_type candidate(transport_net);
+            std::tie(values, candidate) = graph::flow
+            ::network_simplex_initial_solution(producer_id,transport_net);
             
-            // Arc producer->producer must not exist
-            artificial[producer_id] = false;
+            for(arc_type& arc : values)
+                graph::arc(arc.beg,arc.end,transport_net)
+                    .properties.flux = arc.properties.flux;
             
-            // Create auxiliar digraph for feasible solution
-            digraph extra_net { transport_net };
+            // Initial tree is the candidate associated with this graph
+            stree_type initial { transport_net, candidate.arc_ids() };
             
-            // Any real arc has cost 0
-            digraph::arc_iterator ait, ait_end;
-            std::tie(ait,ait_end) = arcs(extra_net);
-            for(; ait != ait_end; ++ait)
-                ait->properties.cost = 0;
-            
-            // Artificial arcs have cost 1
-            for(unsigned int i = 0; i < artificial.size(); ++i)
-                if(artificial[i])
-                    graph::add_arc(
-                        arc_type{producer_id,i,{1}},extra_net
-                    );
-            
-            // All flux go by the arc producer->consumer
-            graph::arc(producer_id,consumer_id,extra_net).
-                properties.flux = product;
-            
-            // First tree with artificial arcs
-            stree_type pseudo {
-                extra_net,out_arcs_list(producer_id,extra_net)
-            };
-            
-            stree_type candidate {
-                graph::flow
-                ::network_simplex_algorithm(extra_net,pseudo)
-            };
-            
-            for(arc_id& c : candidate.arc_ids)
-                if(c.beg == producer_id && artificial[c.end])
-                {
-                    std::cerr << "Impossible problem!!" << std::endl;
-                    return;
-                }
-            
-            std::tie(ait,ait_end) = arcs(extra_net);
-            for(; ait != ait_end; ++ait)
-                if(ait->beg != producer_id || !artificial[ait->end])
-                    graph::arc(ait->beg,ait->end,transport_net)
-                        .properties.flux = ait->properties.flux;
-            
-            stree_type initial { transport_net, candidate.arc_ids };
-            
+            std::cerr << std::endl << "Simplex phase 2" << std::endl;
+            std::cerr << transport_net << std::endl;
             graph::flow
             ::network_simplex_algorithm(transport_net,initial);
         }

@@ -33,6 +33,9 @@
 namespace graph {
 namespace flow 
 {
+    struct unbounded_solution  {};
+    struct unfeasible_solution {};
+    
     template<typename STree>
     struct prices_calculator : public STvisitor<STree>
     {
@@ -136,7 +139,7 @@ namespace flow
         
         // Step 5: Update flux values
         pivot = cycle.front().beg;
-        for(arc_id& aid : cycle)
+        for(const arc_id& aid : cycle)
         {
             arc_type& arc = graph::arc(aid.beg,aid.end,g);
             if(pivot == arc.beg)
@@ -153,6 +156,87 @@ namespace flow
         
         STree modified { out_arc.id, in_arc.id, initial };
         return network_simplex_algorithm(g, modified);
+    }
+    
+    template<
+        typename Graph = graph::Adjacency_list
+            <directed,flow::Vertex<>::type,flow::Arc<>::type>,
+        typename STree = graph::STree<Graph>
+    >std::pair<typename Graph::arc_list,STree>       
+     network_simplex_initial_solution
+     (typename Graph::vertex_id pivot,Graph& g)
+    {
+        typedef STree stree_type;
+        typedef typename graph::graph_traits<Graph>
+            :: arc_type arc_type;
+        typedef typename arc_type::id_type arc_id;
+        
+        std::vector<bool> artificial 
+        ( graph::num_vertices(g), true );
+
+        // Set which arcs are not artificial
+        typename graph::graph_traits<Graph>
+            ::out_arcs_iterator oit, oit_end;
+        std::tie(oit,oit_end) = graph::out_arcs(pivot,g);
+        for(; oit != oit_end; ++oit) 
+            artificial[oit->end] = false;
+        
+        // No arc pivot->pivot should be created
+        artificial[pivot] = false;
+        
+        // Create auxiliar graph
+        Graph auxiliar { g };
+        
+        // Any real arc has cost 0
+        typename graph::graph_traits<Graph>::arc_iterator ait, ait_end;
+        std::tie(ait,ait_end) = arcs(auxiliar);
+        for(; ait != ait_end; ++ait)
+            ait->properties.cost = 0;
+        
+        // Artificial arcs have cost 1
+        for(unsigned int i = 0; i < artificial.size(); ++i)
+            if(artificial[i])
+                graph::add_arc(arc_type{pivot,i,{1}},auxiliar);
+        
+        // All flux go by the arc producer->consumer
+        std::tie(ait,ait_end) = arcs(auxiliar);
+        for(; ait != ait_end; ++ait)
+        {
+            if(ait->beg == pivot 
+            && graph::vertex(ait->end,g).properties.demand > 0)
+                ait->properties.flux 
+                = graph::vertex(ait->end,g).properties.demand;
+            if(ait->end == pivot 
+            && graph::vertex(ait->beg,g).properties.demand < 0)
+                ait->properties.flux 
+                = graph::vertex(ait->beg,g).properties.demand;
+        }
+        
+        stree_type pseudo {
+            // Create a pseudo-tree (with artificial connections)
+            // to be used in the next step
+            auxiliar,out_arcs_list(pivot,auxiliar)
+        };
+        
+        stree_type initial {
+            // Solve LP problem to find initial solution
+            graph::flow::network_simplex_algorithm(auxiliar,pseudo)
+        };
+        
+        // If an artifical arc is needed, the solution is unfeasible
+        for(const arc_id& c : initial.arc_ids())
+            if(c.beg == pivot && artificial[c.end])
+                throw unfeasible_solution{};
+        
+        // Create a new list of arcs to be returned
+        typename Graph::arc_list values; 
+        std::tie(ait,ait_end) = arcs(auxiliar);
+        for(; ait != ait_end; ++ait) 
+            if(ait->beg != pivot || !artificial[ait->end])
+                values.push_back(*ait);
+        
+        // Return arcs with its changed fluxes + initial tree
+        return std::pair<typename Graph::arc_list,STree>{values,initial};
     }
 }}
 
