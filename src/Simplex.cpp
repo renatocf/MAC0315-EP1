@@ -23,6 +23,7 @@
 // Default libraries
 #include <tuple>
 #include <cstdio>
+#include <fstream>
 #include <iostream>
 using namespace std;
 
@@ -41,22 +42,47 @@ using namespace std;
 int main(int argc, char **argv)
 {
     // Process options
-    Options::parse_args(argc, argv);
+    Options options; options.parse_args(argc, argv);
     
     if(argc-optind != 1)
     {
-        cerr << "Usage: Simplex [-h] [-d] input.dat ..." << endl;
-        cerr << "Type --help for more information"       << endl;
-
+        cerr << "Usage: Simplex [-d] [-v] [-o] input.dat ..." << endl;
+        cerr << "Type --help for more information" << endl;
         return EXIT_FAILURE;
     }
     
-    transport::Transport problem { argv[1] };
-    cout << problem << endl;
+    typedef transport::Transport::arc_type arc_type;
+    typedef transport::Transport::arc_list arc_list;
     
-    problem.calculate_best_route();
+    std::ofstream output {options.output};
+    std::ostream& os = options.output.empty() ? cout : output;
     
-    cout << problem << endl;
+    for(int i = optind; i < argc; ++i)
+    {
+        os << endl;
+        if(options.verbose)
+        {
+            os << "Analyzing file " << argv[i] << endl;
+            os << "==========================" << endl;
+            os << endl;
+        }
+        
+        if(options.verbose) os << "Graph: " << endl;
+        transport::Transport problem { argv[i] };
+        if(options.verbose) os << problem << endl;
+        
+        // Best route
+        arc_list values; int final_cost;
+        std::tie(values,final_cost) = problem.calculate_best_route();
+        
+        os << "Cost: " << final_cost << endl;
+        os << "List of arcs: " << endl;
+        for(arc_type& arc : values)
+        {
+            if(options.verbose) os << arc << std::endl;
+            else os << arc.id << " - " << arc.properties.flux << endl;
+        }
+    }
     
     // typedef graph::flow::Vertex<>::type vertex;
     // typedef graph::flow::Arc<>::type    arc;
