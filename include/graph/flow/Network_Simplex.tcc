@@ -24,8 +24,6 @@
 #include <iostream>
 
 // Libraries
-#include "graph/flow/Arc.tcc"
-#include "graph/flow/Vertex.tcc"
 #include "graph/Traits.tcc"
 #include "graph/STree.tcc"
 #include "graph/stree_search.tcc"
@@ -76,10 +74,9 @@ namespace flow
     };
     
     template<
-        typename Graph = graph::Adjacency_list
-            <directed,flow::Vertex<>::type,flow::Arc<>::type>,
-        typename STree = graph::STree<Graph>
-    >STree network_simplex_algorithm(Graph& g, STree& initial)
+        typename Graph, typename STree
+    >std::pair<typename graph_traits<Graph>::arc_list,STree>       
+     network_simplex_algorithm(STree& initial, Graph& g)
     {
         typedef typename Graph::vertex_id               vertex_id;
         typedef typename Graph::arc_type                arc_type;
@@ -103,11 +100,19 @@ namespace flow
                < prices.price[ait->end]) break;
         }
         
-        // If there is no arc, Network Simplex ended
-        if(ait == ait_end) return initial;
-        arc_type in_arc { *ait };
+        // Final Step: No arcs to optimize spanning tree
+        if(ait == ait_end)
+        {
+            typename Graph::arc_list values; 
+            std::tie(ait,ait_end) = graph::arcs(g);
+            for(; ait != ait_end; ++ait) values.push_back(*ait);
+            
+            return 
+            std::pair<typename Graph::arc_list,STree>{values,initial};
+        }
         
         // Step 3: Find fundamental cycle
+        arc_type in_arc { *ait };
         cycle_type cycle { initial.fundamental_cycle(in_arc.id) };
         
         // Step 4: Find flux variation and arc to be removed
@@ -155,14 +160,12 @@ namespace flow
         }
         
         STree modified { out_arc.id, in_arc.id, initial };
-        return network_simplex_algorithm(g, modified);
+        return network_simplex_algorithm(modified, g);
     }
     
     template<
-        typename Graph = graph::Adjacency_list
-            <directed,flow::Vertex<>::type,flow::Arc<>::type>,
-        typename STree = graph::STree<Graph>
-    >std::pair<typename Graph::arc_list,STree>       
+        typename Graph, typename STree
+    >std::pair<typename graph_traits<Graph>::arc_list,STree>       
      network_simplex_initial_solution
      (typename Graph::vertex_id pivot,Graph& g)
     {
@@ -218,10 +221,10 @@ namespace flow
             auxiliar,out_arcs_list(pivot,auxiliar)
         };
         
-        stree_type initial {
-            // Solve LP problem to find initial solution
-            graph::flow::network_simplex_algorithm(auxiliar,pseudo)
-        };
+        // Solve LP problem to find initial solution
+        typename Graph::arc_list values; stree_type initial(g);
+        std::tie(values, initial) = graph::flow
+        ::network_simplex_algorithm(pseudo,auxiliar);
         
         // If an artifical arc is needed, the solution is unfeasible
         for(const arc_id& c : initial.arc_ids())
@@ -229,14 +232,13 @@ namespace flow
                 throw unfeasible_solution{};
         
         // Create a new list of arcs to be returned
-        typename Graph::arc_list values; 
-        std::tie(ait,ait_end) = arcs(auxiliar);
-        for(; ait != ait_end; ++ait) 
-            if(ait->beg != pivot || !artificial[ait->end])
-                values.push_back(*ait);
+        typename Graph::arc_list real;
+        for(arc_type& arc : values)
+            if(arc.beg != pivot || !artificial[arc.end])
+                real.push_back(arc);
         
         // Return arcs with its changed fluxes + initial tree
-        return std::pair<typename Graph::arc_list,STree>{values,initial};
+        return std::pair<typename Graph::arc_list,STree>{real,initial};
     }
 }}
 

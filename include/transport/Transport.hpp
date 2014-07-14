@@ -24,6 +24,8 @@
 // Libraries
 #include "graph/STree.tcc"
 #include "graph/Adjacency_list.tcc"
+#include "graph/flow/Arc.tcc"
+#include "graph/flow/Vertex.tcc"
 #include "graph/flow/Network_Simplex.tcc"
 
 namespace transport 
@@ -79,7 +81,8 @@ namespace transport
             // Find initial solution
             arc_list values; stree_type candidate(transport_net);
             std::tie(values, candidate) = graph::flow
-            ::network_simplex_initial_solution(producer_id,transport_net);
+            ::network_simplex_initial_solution<digraph,stree_type>
+                (producer_id,transport_net);
             
             for(arc_type& arc : values)
                 graph::arc(arc.beg,arc.end,transport_net)
@@ -91,7 +94,7 @@ namespace transport
             std::cerr << std::endl << "Simplex phase 2" << std::endl;
             std::cerr << transport_net << std::endl;
             graph::flow
-            ::network_simplex_algorithm(transport_net,initial);
+            ::network_simplex_algorithm(initial,transport_net);
         }
         
         friend std::ostream& 

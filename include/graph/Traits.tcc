@@ -26,12 +26,16 @@ namespace graph
         typedef typename Graph
             ::vertex_type           vertex_type;
         typedef typename Graph
+            ::vertex_list           vertex_list;
+        typedef typename Graph
             ::vertex_iterator       vertex_iterator;
         typedef typename Graph
             ::const_vertex_iterator const_vertex_iterator;
         
         typedef typename Graph
             ::arc_type              arc_type;
+        typedef typename Graph
+            ::arc_list              arc_list;
         typedef typename Graph
             ::arc_iterator          arc_iterator;
         typedef typename Graph
