@@ -15,8 +15,8 @@
 /* and limitations under the License.                                 */
 /**********************************************************************/
 
-#ifndef HPP_OPTIONS_OPTIONS_DEFINED
-#define HPP_OPTIONS_OPTIONS_DEFINED
+#ifndef HPP_OPTIONS_DEFINED
+#define HPP_OPTIONS_DEFINED
 
 /**
  * @file  Options.hpp
@@ -28,13 +28,18 @@
 
 /**
  * @namespace Options
- * @brief All functions and variables related to Game options.
+ * @brief All functions and variables related to Transport problem.
  *
  * Define the prototype to a function to parse arguments and 
- * set variables to be used in this game.
+ * set variables to be used by the Transport problem
  */
-namespace Options 
+struct Options 
 {
+    bool verbose;
+    std::string output;
+    
+    Options() : verbose{false}, output{} {}
+    
     /**
      * @brief Parse arguments came from the command line.
      * 
@@ -45,6 +50,6 @@ namespace Options
      * @param argv Array of string with the arguments
      */
     void parse_args(int argc, char **argv);
-}
+};
 
 #endif

@@ -16,29 +16,34 @@
 /**********************************************************************/
 
 // Default libraries
+#include <fstream>
 #include <iostream>
 
 // Libraries
 #include "Options.hpp"
-using namespace Options;
 
 void Options::parse_args(int argc, char **argv)
 {
     static struct option long_options[] = {
-        { "debug", no_argument, NULL, 'd' },
-        { "help" , no_argument, NULL, 'h' },
-        { 0, 0, 0, 0 }
+        { "debug"   , no_argument,       nullptr,  'd' },
+        { "verbose" , no_argument,       nullptr,  'v' },
+        { "options" , required_argument, nullptr,  'o' },
+        { "\0",       0,                 nullptr, '\0' }
     };
     
     int option_index = 0; int c;
-    while((c = getopt_long(argc, argv, "d",
+    while((c = getopt_long(argc, argv, "dvo:",
                long_options, &option_index)) != -1)
     {
         switch(c) 
         {
             case 'd':
                 break;
-            case 'h':
+            case 'v':
+                this->verbose = true;
+                break;
+            case 'o':
+                this->output = std::string{optarg};
                 break;
             case '?':
                 break;
