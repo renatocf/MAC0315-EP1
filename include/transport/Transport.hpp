@@ -19,7 +19,9 @@
 #define HPP_TRANSPORT_TRANSPORT_DEFINED
 
 // Default libraries
+#include <string>
 #include <fstream>
+#include <exception>
 
 // Libraries
 #include "graph/STree.tcc"
@@ -30,6 +32,8 @@
 
 namespace transport 
 {
+    struct bad_file{};
+    
     class Transport
     {
         public:
@@ -54,6 +58,11 @@ namespace transport
             Transport(std::string filename)
             {
                 std::ifstream input { filename };
+                if(!input.good()) 
+                {
+                    std::string msg {"Problems with file " + filename};
+                    throw std::invalid_argument{msg};
+                }
                 
                 vertex_id source, target;
                 unsigned int cost;

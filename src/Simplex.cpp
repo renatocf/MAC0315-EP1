@@ -44,7 +44,7 @@ int main(int argc, char **argv)
     // Process options
     Options options; options.parse_args(argc, argv);
     
-    if(argc-optind != 1)
+    if(argc-optind < 1)
     {
         cerr << "Usage: Simplex [-v] [-o] input.dat ..." << endl;
         return EXIT_FAILURE;
@@ -57,6 +57,7 @@ int main(int argc, char **argv)
     std::ostream& os = options.output.empty() ? cout : output;
     
     for(int i = optind; i < argc; ++i)
+    try 
     {
         os << endl;
         if(options.verbose)
@@ -81,6 +82,10 @@ int main(int argc, char **argv)
             if(options.verbose) os << arc << std::endl;
             else os << arc.id << " - " << arc.properties.flux << endl;
         }
+    } 
+    catch(const std::invalid_argument& ia)
+    {
+        cerr << "Invalid argument: " << ia.what() << endl;
     }
     
     return EXIT_SUCCESS;
