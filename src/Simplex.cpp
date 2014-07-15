@@ -25,6 +25,7 @@
 #include <cstdio>
 #include <fstream>
 #include <iostream>
+#include <stdexcept>
 using namespace std;
 
 // Libraries

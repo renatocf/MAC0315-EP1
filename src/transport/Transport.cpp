@@ -15,6 +15,9 @@
 /* and limitations under the License.                                 */
 /**********************************************************************/
 
+// Default libraries
+#include <stdexcept>
+
 // Libraries
 #include "Transport.hpp"
 using namespace transport;
